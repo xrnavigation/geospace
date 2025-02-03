@@ -358,16 +358,20 @@ export class GeometryEngine implements GeometryOperations {
     
     let minDist = Infinity;
     
-    // Check distances from vertices of a to b
-    for (const vertex of a.vertices) {
-      const d = this.pointToPolygonDistance(vertex, b);
-      minDist = Math.min(minDist, d);
-    }
-    
-    // Check distances from vertices of b to a
-    for (const vertex of b.vertices) {
-      const d = this.pointToPolygonDistance(vertex, a);
-      minDist = Math.min(minDist, d);
+    // Check all edge pairs
+    for (let i = 0; i < a.vertices.length; i++) {
+      const a1 = a.vertices[i];
+      const a2 = a.vertices[(i + 1) % a.vertices.length];
+      const edgeA: LineSegment = { start: a1, end: a2 };
+      
+      for (let j = 0; j < b.vertices.length; j++) {
+        const b1 = b.vertices[j];
+        const b2 = b.vertices[(j + 1) % b.vertices.length];
+        const edgeB: LineSegment = { start: b1, end: b2 };
+        
+        const d = this.lineToLineDistance(edgeA, edgeB);
+        minDist = Math.min(minDist, d);
+      }
     }
     
     return minDist;
