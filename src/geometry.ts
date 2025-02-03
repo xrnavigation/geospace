@@ -1,42 +1,117 @@
-// ==========================
-// Comprehensive 2D geometry library with improved numerical stability,
-// a quadratic–split R‑tree (with bulk–loading and priority–queue nearest search),
-// cached bounding boxes for memory efficiency, and optimized polygon routines.
-// ==========================
+/**
+ * @fileoverview Geospace - A comprehensive 2D geometry library
+ * 
+ * Features:
+ * - Numerically stable geometric operations using epsilon-based comparisons
+ * - Quadratic-split R-tree implementation with bulk-loading capability
+ * - Priority-queue based nearest-neighbor search
+ * - Memory-efficient cached bounding boxes
+ * - Optimized polygon routines
+ * 
+ * @version 1.0.0
+ * @internal
+ */
 
-/** Global epsilon for numerical stability */
+/** 
+ * Global epsilon for numerical stability in floating-point comparisons.
+ * Used to handle rounding errors and near-zero comparisons.
+ */
 const EPSILON = 1e-10;
 
-/** A 2D point with x,y coordinates */
+/**
+ * Represents a point in 2D space.
+ * All coordinates are immutable after creation.
+ * 
+ * @example
+ * ```typescript
+ * const point: Point = { x: 1, y: 2 };
+ * ```
+ */
 export interface Point {
+  /** X-coordinate in 2D space */
   readonly x: number;
+  /** Y-coordinate in 2D space */
   readonly y: number;
 }
 
-/** A circle defined by center point and radius */
+/**
+ * Represents a circle defined by a center point and radius.
+ * All properties are immutable after creation.
+ * 
+ * @example
+ * ```typescript
+ * const circle: Circle = { 
+ *   center: { x: 0, y: 0 }, 
+ *   radius: 5 
+ * };
+ * ```
+ */
 export interface Circle {
+  /** Center point of the circle */
   readonly center: Point;
+  /** Radius of the circle (must be positive) */
   readonly radius: number;
 }
 
-/** A line segment defined by start and end points */
+/**
+ * Represents a line segment defined by start and end points.
+ * All properties are immutable after creation.
+ * 
+ * @example
+ * ```typescript
+ * const segment: LineSegment = {
+ *   start: { x: 0, y: 0 },
+ *   end: { x: 1, y: 1 }
+ * };
+ * ```
+ */
 export interface LineSegment {
+  /** Starting point of the line segment */
   readonly start: Point;
+  /** Ending point of the line segment */
   readonly end: Point;
 }
 
-/** A polygon defined by an ordered list of vertices */
-/** Vertices should form a closed loop (first != last) */
+/**
+ * Represents a polygon defined by an ordered list of vertices.
+ * The vertices should form a closed loop but should not repeat the first vertex.
+ * All properties are immutable after creation.
+ * 
+ * @example
+ * ```typescript
+ * const square: Polygon = {
+ *   vertices: [
+ *     { x: 0, y: 0 },
+ *     { x: 1, y: 0 },
+ *     { x: 1, y: 1 },
+ *     { x: 0, y: 1 }
+ *   ]
+ * };
+ * ```
+ */
 export interface Polygon {
+  /** Ordered list of polygon vertices */
   readonly vertices: readonly Point[];
+  /** 
+   * Gets the bounding box of the polygon.
+   * @returns The axis-aligned bounding box containing the polygon
+   */
   getBoundingBox(): BoundingBox;
 }
 
-/** Axis-aligned bounding box */
+/**
+ * Represents an axis-aligned bounding box.
+ * Used for broad-phase collision detection and spatial indexing.
+ * All coordinates are immutable after creation.
+ */
 export interface BoundingBox {
+  /** Minimum x-coordinate of the box */
   readonly minX: number;
+  /** Minimum y-coordinate of the box */
   readonly minY: number;
+  /** Maximum x-coordinate of the box */
   readonly maxX: number;
+  /** Maximum y-coordinate of the box */
   readonly maxY: number;
 }
 
