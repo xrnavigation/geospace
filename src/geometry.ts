@@ -210,7 +210,7 @@ export class AffineTransform implements Transform {
     this.translate({ x: cx, y: cy });
     return this;
   }
-  apply<T extends Geometry>(geometry: T): T {
+  apply<T extends Geometry & Bounded>(geometry: T): T {
     if (isPoint(geometry)) {
       return transformPoint(geometry, this.m) as T;
     } else if (isLineSegment(geometry)) {
@@ -1009,7 +1009,7 @@ export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
     while (n) {
       if (n.entries.length < this.minEntries && n.parent) {
         const parent = n.parent;
-        const index = parent.entries.findIndex(e => e.child === n);
+        const index = parent.entries.findIndex((e: Entry<T>) => e.child === n);
         if (index >= 0) {
           parent.entries.splice(index, 1);
           for (const entry of n.entries) {
@@ -1252,7 +1252,7 @@ function runTests() {
   assert(Math.abs(engine.perimeter(line) - 10) < EPSILON, "Line perimeter");
 
   // --- Spatial index (R-tree) tests ---
-  const rtree = new RTree<Bounded>();
+  const rtree = new RTree<Geometry & Bounded>();
   const pA = new Point2D(1, 1);
   const pB = new Point2D(2, 2);
   const pC = new Point2D(3, 3);
@@ -1279,7 +1279,7 @@ function runTests() {
   assert(searchResultClear.length === 0, "RTree clear");
 
   // --- GeometryEngine spatial query using index ---
-  const rtreeForEngine = new RTree<Bounded>();
+  const rtreeForEngine = new RTree<Geometry & Bounded>();
   rtreeForEngine.bulkLoad([pA, pB, pC]);
   const engineWithIndex = new GeometryEngine(distance, rtreeForEngine);
   const queryResult = engineWithIndex.query({ x: 2, y: 2 });
