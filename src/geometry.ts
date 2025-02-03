@@ -120,15 +120,51 @@ export interface Bounded {
   getBoundingBox(): BoundingBox;
 }
 
-/** Chainable geometric transformations */
+/**
+ * Interface for chainable geometric transformations.
+ * Allows composing multiple transformations that can be applied to any geometry type.
+ * All transformations are immutable and return a new Transform instance.
+ * 
+ * @example
+ * ```typescript
+ * const transform = new AffineTransform()
+ *   .translate({ x: 10, y: 0 })
+ *   .rotate(Math.PI / 4)
+ *   .scale(2);
+ * const transformed = transform.apply(geometry);
+ * ```
+ */
 export interface Transform {
-  /** Move by vector */
+  /**
+   * Translates (moves) geometry by the given vector.
+   * @param vector The translation vector with x,y components
+   * @returns A new Transform with this translation applied
+   */
   translate(vector: Point): Transform;
-  /** Rotate around center (default origin) */
+
+  /**
+   * Rotates geometry around a center point by the given angle.
+   * Positive angles rotate counter-clockwise.
+   * @param angleRadians The rotation angle in radians
+   * @param center Optional center of rotation (defaults to origin)
+   * @returns A new Transform with this rotation applied
+   */
   rotate(angleRadians: number, center?: Point): Transform;
-  /** Scale from center (default origin) */
+
+  /**
+   * Scales geometry from a center point by the given factor.
+   * @param factor The scale factor (must be > 0)
+   * @param center Optional center of scaling (defaults to origin)
+   * @returns A new Transform with this scaling applied
+   */
   scale(factor: number, center?: Point): Transform;
-  /** Apply transform to geometry */
+
+  /**
+   * Applies the accumulated transformations to a geometry object.
+   * @param geometry The geometry to transform
+   * @returns A new transformed geometry of the same type
+   * @throws Error if the geometry type is not supported
+   */
   apply<T extends Geometry>(geometry: T): T;
 }
 
@@ -318,16 +354,39 @@ export class Polygon2D implements Polygon, Bounded {
 // ==========================
 
 /**
- * Implements a chainable affine transform.
- * Internally the transform is stored as six numbers [a, b, c, d, e, f] representing
- * the 3×3 matrix:
- *
+ * Implements a chainable affine transform using a 3x3 transformation matrix.
+ * 
+ * An affine transformation preserves:
+ * - Collinearity (points on a line remain on a line)
+ * - Parallelism (parallel lines remain parallel)
+ * - Ratios of distances along a line
+ * 
+ * The transform is represented internally by a 3×3 matrix:
+ * ```
  *    [ a  c  e ]
  *    [ b  d  f ]
  *    [ 0  0  1 ]
- *
- * so that a point (x,y) is transformed to:
- *    x' = a*x + c*y + e,   y' = b*x + d*y + f.
+ * ```
+ * where [a,b,c,d] handle rotation/scaling and [e,f] handle translation.
+ * 
+ * A point (x,y) is transformed to (x',y') by:
+ * ```
+ *    x' = a*x + c*y + e
+ *    y' = b*x + d*y + f
+ * ```
+ * 
+ * Common transformations:
+ * - Translation: [1 0 tx] [0 1 ty] [0 0 1]
+ * - Rotation: [cos θ  -sin θ  0] [sin θ   cos θ  0] [0 0 1]
+ * - Scale: [sx 0 0] [0 sy 0] [0 0 1]
+ * 
+ * @example
+ * ```typescript
+ * const transform = new AffineTransform()
+ *   .translate({ x: 10, y: 0 })  // Move right 10 units
+ *   .rotate(Math.PI / 4)         // Rotate 45 degrees
+ *   .scale(2);                   // Double the size
+ * ```
  */
 export class AffineTransform implements Transform {
   private m: number[];
