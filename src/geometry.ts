@@ -804,7 +804,7 @@ interface Entry<T extends Bounded> {
 class Node<T extends Bounded> {
   entries: Entry<T>[] = [];
   leaf: boolean;
-  public parent!: Node<T> | undefined;
+  public parent: Node<T> | undefined = undefined;
   private _bbox: BoundingBox | null = null;
   constructor(leaf: boolean) {
     this.leaf = leaf;
