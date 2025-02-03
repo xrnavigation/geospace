@@ -517,7 +517,8 @@ export class GeometryEngine implements GeometryOperations {
       if (isPoint(contained)) {
         return pointInPolygon(contained, container);
       } else if (isLineSegment(contained)) {
-        if (!pointInPolygon(contained.start, container) || !pointInPolygon(contained.end, container)) return false;
+        if (!(pointInPolygon(contained.start, container) || onPolygonBoundary(contained.start, container)) ||
+            !(pointInPolygon(contained.end, container) || onPolygonBoundary(contained.end, container))) return false;
         const vertices = container.vertices;
         for (let i = 0; i < vertices.length; i++) {
           const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
@@ -649,6 +650,14 @@ function pointInPolygon(p: Point, poly: Polygon): boolean {
     if (intersect) inside = !inside;
   }
   return inside;
+}
+function onPolygonBoundary(p: Point, poly: Polygon): boolean {
+  const vertices = poly.vertices;
+  for (let i = 0; i < vertices.length; i++) {
+    const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
+    if (pointOnSegment(p, edge)) return true;
+  }
+  return false;
 }
 
 /**
