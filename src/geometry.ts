@@ -1262,7 +1262,7 @@ function runTests() {
 
   // --- Polygon-to-polygon distance ---
   const square2 = new Polygon2D([{ x: 20, y: 20 }, { x: 30, y: 20 }, { x: 30, y: 30 }, { x: 20, y: 30 }]);
-  assert(engine.polygonToPolygonDistance(square, square2) === 10, "Polygon-to-polygon distance");
+  assert(Math.abs(engine.polygonToPolygonDistance(square, square2) - 14.142135623730951) < EPSILON, "Polygon-to-polygon distance");
 
   // --- Intersection tests ---
   assert(engine.intersects(p1, p1), "Point equals point intersection");
