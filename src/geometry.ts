@@ -373,13 +373,53 @@ export class GeometryEngine implements GeometryOperations {
     return minDist;
   }
   intersects(a: Geometry, b: Geometry): boolean {
-    // Convert points to bounding boxes for consistent handling
-    const bboxA = isPoint(a) ? 
-      { minX: a.x, minY: a.y, maxX: a.x, maxY: a.y } :
-      (a as Bounded).getBoundingBox();
-    const bboxB = isPoint(b) ? 
-      { minX: b.x, minY: b.y, maxX: b.x, maxY: b.y } :
-      (b as Bounded).getBoundingBox();
+    // Get bounding boxes, handling each geometry type appropriately
+    let bboxA: BoundingBox;
+    let bboxB: BoundingBox;
+
+    if (isPoint(a)) {
+      bboxA = { minX: a.x, minY: a.y, maxX: a.x, maxY: a.y };
+    } else if (isLineSegment(a)) {
+      bboxA = {
+        minX: Math.min(a.start.x, a.end.x),
+        minY: Math.min(a.start.y, a.end.y),
+        maxX: Math.max(a.start.x, a.end.x),
+        maxY: Math.max(a.start.y, a.end.y)
+      };
+    } else if (isCircle(a)) {
+      bboxA = {
+        minX: a.center.x - a.radius,
+        minY: a.center.y - a.radius,
+        maxX: a.center.x + a.radius,
+        maxY: a.center.y + a.radius
+      };
+    } else if (isPolygon(a)) {
+      bboxA = a.getBoundingBox();
+    } else {
+      throw new Error("Unknown geometry type");
+    }
+
+    if (isPoint(b)) {
+      bboxB = { minX: b.x, minY: b.y, maxX: b.x, maxY: b.y };
+    } else if (isLineSegment(b)) {
+      bboxB = {
+        minX: Math.min(b.start.x, b.end.x),
+        minY: Math.min(b.start.y, b.end.y),
+        maxX: Math.max(b.start.x, b.end.x),
+        maxY: Math.max(b.start.y, b.end.y)
+      };
+    } else if (isCircle(b)) {
+      bboxB = {
+        minX: b.center.x - b.radius,
+        minY: b.center.y - b.radius,
+        maxX: b.center.x + b.radius,
+        maxY: b.center.y + b.radius
+      };
+    } else if (isPolygon(b)) {
+      bboxB = b.getBoundingBox();
+    } else {
+      throw new Error("Unknown geometry type");
+    }
 
     // Quick reject using bounding boxes
     if (!bboxIntersects(bboxA, bboxB)) return false;
