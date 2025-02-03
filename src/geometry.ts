@@ -1009,7 +1009,7 @@ export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
     let n: Node<T> | undefined = node;
     while (n) {
       if (n.entries.length < this.minEntries && n.parent) {
-        const parent = n.parent;
+        const parent = n.parent as Node<T>;
         const index = parent.entries.findIndex((e: Entry<T>) => e.child === n);
         if (index >= 0) {
           parent.entries.splice(index, 1);
@@ -1029,7 +1029,7 @@ export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
             parentEntry.bbox = n.bbox;
           }
         }
-        n = n.parent;
+        n = n.parent as Node<T>;
       }
     }
   }
