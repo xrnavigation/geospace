@@ -214,19 +214,19 @@ export class AffineTransform implements Transform {
     if (isPoint(geometry)) {
       return transformPoint(geometry, this.m) as T;
     } else if (isLineSegment(geometry)) {
-      return {
-        start: transformPoint(geometry.start, this.m),
-        end: transformPoint(geometry.end, this.m)
-      } as T;
+      return new LineSegment2D(
+        transformPoint(geometry.start, this.m),
+        transformPoint(geometry.end, this.m)
+      ) as T;
     } else if (isCircle(geometry)) {
-      return {
-        center: transformPoint(geometry.center, this.m),
-        radius: geometry.radius * Math.sqrt(Math.abs(this.m[0] * this.m[3] - this.m[1] * this.m[2]))
-      } as T;
+      return new Circle2D(
+        transformPoint(geometry.center, this.m),
+        geometry.radius * Math.sqrt(Math.abs(this.m[0] * this.m[3] - this.m[1] * this.m[2]))
+      ) as T;
     } else if (isPolygon(geometry)) {
-      return {
-        vertices: geometry.vertices.map(v => transformPoint(v, this.m))
-      } as T;
+      return new Polygon2D(
+        geometry.vertices.map(v => transformPoint(v, this.m))
+      ) as T;
     } else {
       throw new Error("Unsupported geometry type");
     }
@@ -276,7 +276,7 @@ export class GeometryEngine implements GeometryOperations {
     /** Distance function for point-to-point distance */
     private distanceFunc: (a: Point, b: Point) => number,
     /** Optional spatial index for acceleration */
-    private index?: SpatialIndex<Geometry & Bounded>
+    private index?: SpatialIndex<Bounded>
   ) {}
   pointToPointDistance(a: Point, b: Point): number {
     return this.distanceFunc(a, b);
@@ -804,7 +804,7 @@ interface Entry<T> {
 class Node<T extends Bounded> {
   entries: Entry<T>[] = [];
   leaf: boolean;
-  parent: Node<T> | null = null;
+  parent?: Node<T>;
   private _bbox: BoundingBox | null = null;
   constructor(leaf: boolean) {
     this.leaf = leaf;
@@ -1023,7 +1023,7 @@ export class RTree<T extends Bounded> implements SpatialIndex<T> {
         n = parent;
       } else {
         if (n.parent) {
-          const parentEntry = n.parent.entries.find(e => e.child === n);
+          const parentEntry = n.parent.entries.find((e: Entry<T>) => e.child === n);
           if (parentEntry) {
             parentEntry.bbox = n.bbox;
           }
@@ -1196,7 +1196,7 @@ function runTests() {
   assert(engine.pointToCircleDistance({ x: 0, y: 0 }, circle) === 0, "Point inside circle");
 
   // --- Point-to-polygon distance & pointInPolygon ---
-  const square: Polygon = { vertices: [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }] };
+  const square = new Polygon2D([{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }]);
   const p5: Point = { x: 5, y: 5 };
   assert(engine.pointToPolygonDistance(p5, square) === 0, "Point inside polygon");
   const p6: Point = { x: -5, y: 5 };
@@ -1220,13 +1220,13 @@ function runTests() {
   assert(engine.circleToCircleDistance(circle, circle2) === 5, "Circle-to-circle distance");
 
   // --- Circle-to-polygon distance ---
-  const triangle: Polygon = { vertices: [{ x: 20, y: 20 }, { x: 30, y: 20 }, { x: 25, y: 30 }] };
+  const triangle = new Polygon2D([{ x: 20, y: 20 }, { x: 30, y: 20 }, { x: 25, y: 30 }]);
   assert(engine.circleToPolygonDistance(circle, square) === 0, "Circle intersects square");
   const circle3: Circle = { center: { x: -10, y: -10 }, radius: 2 };
   assert(engine.circleToPolygonDistance(circle3, square) > 0, "Circle outside square");
 
   // --- Polygon-to-polygon distance ---
-  const square2: Polygon = { vertices: [{ x: 20, y: 20 }, { x: 30, y: 20 }, { x: 30, y: 30 }, { x: 20, y: 30 }] };
+  const square2 = new Polygon2D([{ x: 20, y: 20 }, { x: 30, y: 20 }, { x: 30, y: 30 }, { x: 20, y: 30 }]);
   assert(engine.polygonToPolygonDistance(square, square2) === 10, "Polygon-to-polygon distance");
 
   // --- Intersection tests ---
