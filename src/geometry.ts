@@ -804,7 +804,7 @@ interface Entry<T> {
 class Node<T extends Bounded> {
   entries: Entry<T>[] = [];
   leaf: boolean;
-  public parent: Node<T> | undefined = undefined;
+  public parent: Node<T> | undefined;
   private _bbox: BoundingBox | null = null;
   constructor(leaf: boolean) {
     this.leaf = leaf;
@@ -839,7 +839,7 @@ function getBBoxCenter(bbox: BoundingBox): Point {
 }
 
 /** Helper: compute the union of an array of entries’ bounding boxes */
-function calcEntriesBBox(entries: Entry<any>[]): BoundingBox {
+function calcEntriesBBox<T extends Bounded>(entries: Entry<T>[]): BoundingBox {
   return entries.reduce((acc, entry) => unionBBox(acc, entry.bbox), entries[0].bbox);
 }
 
