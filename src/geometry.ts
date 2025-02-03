@@ -210,7 +210,7 @@ export class AffineTransform implements Transform {
     this.translate({ x: cx, y: cy });
     return this;
   }
-  apply<T extends Geometry & Bounded>(geometry: T): T {
+  apply<T extends Geometry>(geometry: T): T {
     if (isPoint(geometry)) {
       return transformPoint(geometry, this.m) as T;
     } else if (isLineSegment(geometry)) {
@@ -804,7 +804,7 @@ interface Entry<T> {
 class Node<T extends Bounded> {
   entries: Entry<T>[] = [];
   leaf: boolean;
-  parent: Node<T> | undefined;
+  public parent: Node<T> | undefined = undefined;
   private _bbox: BoundingBox | null = null;
   constructor(leaf: boolean) {
     this.leaf = leaf;
