@@ -794,7 +794,7 @@ class PriorityQueue<T> {
 // ==========================
 
 /** Internal R-tree entry */
-interface Entry<T> {
+interface Entry<T extends Bounded> {
   bbox: BoundingBox;
   child?: Node<T>;
   item?: T;
@@ -804,7 +804,7 @@ interface Entry<T> {
 class Node<T extends Bounded> {
   entries: Entry<T>[] = [];
   leaf: boolean;
-  public parent: Node<T> | undefined;
+  public parent!: Node<T> | undefined;
   private _bbox: BoundingBox | null = null;
   constructor(leaf: boolean) {
     this.leaf = leaf;
