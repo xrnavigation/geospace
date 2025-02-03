@@ -804,10 +804,11 @@ interface Entry<T extends Bounded> {
 class Node<T extends Bounded> {
   entries: Entry<T>[] = [];
   leaf: boolean;
-  public parent: Node<T> | null = null;
+  public parent: Node<T> | null;
   private _bbox: BoundingBox | null = null;
   constructor(leaf: boolean) {
     this.leaf = leaf;
+    this.parent = null;
   }
   computeBBox(): BoundingBox {
     if (this.entries.length === 0) {
