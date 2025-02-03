@@ -217,12 +217,12 @@ export class AffineTransform implements Transform {
       return new LineSegment2D(
         transformPoint(geometry.start, this.m),
         transformPoint(geometry.end, this.m)
-      ) as T;
+      ) as unknown as T;
     } else if (isCircle(geometry)) {
       return new Circle2D(
         transformPoint(geometry.center, this.m),
         geometry.radius * Math.sqrt(Math.abs(this.m[0] * this.m[3] - this.m[1] * this.m[2]))
-      ) as T;
+      ) as unknown as T;
     } else if (isPolygon(geometry)) {
       return new Polygon2D(
         geometry.vertices.map(v => transformPoint(v, this.m))
@@ -804,7 +804,7 @@ interface Entry<T> {
 class Node<T extends Bounded> {
   entries: Entry<T>[] = [];
   leaf: boolean;
-  parent?: Node<T>;
+  parent: Node<T> | undefined;
   private _bbox: BoundingBox | null = null;
   constructor(leaf: boolean) {
     this.leaf = leaf;
@@ -844,7 +844,7 @@ function calcEntriesBBox(entries: Entry<any>[]): BoundingBox {
 }
 
 /** R-tree spatial index implementation */
-export class RTree<T extends Bounded> implements SpatialIndex<T> {
+export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
   private maxEntries: number;
   private minEntries: number;
   private root: Node<T>;
@@ -977,7 +977,7 @@ export class RTree<T extends Bounded> implements SpatialIndex<T> {
       this.condenseTree(leafNode);
       if (this.root.entries.length === 1 && !this.root.leaf) {
         this.root = this.root.entries[0].child!;
-        this.root.parent = null;
+        this.root.parent = undefined;
       }
       return true;
     }
@@ -1005,7 +1005,7 @@ export class RTree<T extends Bounded> implements SpatialIndex<T> {
     }
   }
   private condenseTree(node: Node<T>): void {
-    let n: Node<T> | null = node;
+    let n: Node<T> | undefined = node;
     while (n) {
       if (n.entries.length < this.minEntries && n.parent) {
         const parent = n.parent;
@@ -1149,7 +1149,7 @@ export class RTree<T extends Bounded> implements SpatialIndex<T> {
       levelNodes = newLevel;
     }
     this.root = levelNodes[0];
-    this.root.parent = null;
+    this.root.parent = undefined;
   }
 }
 
