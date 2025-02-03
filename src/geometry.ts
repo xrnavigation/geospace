@@ -108,6 +108,14 @@ export interface SpatialIndex<T extends Bounded> {
   bulkLoad(items: T[]): void;
 }
 
+/** New interface to support additional metadata */
+export interface SpatialItem extends Bounded {
+  id: string;
+  geometry: Geometry & Bounded;
+  metadata?: any;
+  getBoundingBox(): BoundingBox;
+}
+
 // ==========================
 // Concrete classes for geometry types
 // ==========================
@@ -888,7 +896,7 @@ function calcEntriesBBox<T extends Bounded>(entries: Entry<T>[]): BoundingBox {
 }
 
 /** R-tree spatial index implementation */
-export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
+export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
   private maxEntries: number;
   private minEntries: number;
   private root: Node<T>;
@@ -898,7 +906,7 @@ export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
     this.root = new Node<T>(true);
   }
   insert(item: T): void {
-    const entry: Entry<T> = { bbox: item.getBoundingBox(), item };
+    const entry: Entry<T> = { bbox: item.geometry.getBoundingBox(), item };
     this._insert(entry, this.root);
   }
   private _insert(entry: Entry<T>, node: Node<T>): void {
@@ -1147,7 +1155,7 @@ export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
       return;
     }
     const M = this.maxEntries;
-    let entries: Entry<T>[] = items.map(item => ({ bbox: item.getBoundingBox(), item }));
+    let entries: Entry<T>[] = items.map(item => ({ bbox: item.geometry.getBoundingBox(), item }));
     // Determine number of slices S = ceil(sqrt(n / M))
     const S = Math.ceil(Math.sqrt(entries.length / M));
     entries.sort((a, b) => a.bbox.minX - b.bbox.minX);
@@ -1296,18 +1304,33 @@ function runTests() {
   assert(Math.abs(engine.perimeter(line) - 10) < EPSILON, "Line perimeter");
 
   // --- Spatial index (R-tree) tests ---
-  const rtree = new RTree<Geometry & Bounded>();
-  const pA = new Point2D(1, 1);
-  const pB = new Point2D(2, 2);
-  const pC = new Point2D(3, 3);
-  rtree.insert(pA);
-  rtree.insert(pB);
-  rtree.insert(pC);
+  const rtree = new RTree<SpatialItem>();
+  const itemA: SpatialItem = { 
+    id: "A", 
+    geometry: new Point2D(1, 1), 
+    metadata: {}, 
+    getBoundingBox: function() { return this.geometry.getBoundingBox(); } 
+  };
+  const itemB: SpatialItem = { 
+    id: "B", 
+    geometry: new Point2D(2, 2), 
+    metadata: {}, 
+    getBoundingBox: function() { return this.geometry.getBoundingBox(); } 
+  };
+  const itemC: SpatialItem = { 
+    id: "C", 
+    geometry: new Point2D(3, 3), 
+    metadata: {}, 
+    getBoundingBox: function() { return this.geometry.getBoundingBox(); } 
+  };
+  rtree.insert(itemA);
+  rtree.insert(itemB);
+  rtree.insert(itemC);
   let searchResult = rtree.search({ minX: 0, minY: 0, maxX: 2.5, maxY: 2.5 });
   assert(searchResult.length === 2, "RTree search");
   let nearest = rtree.nearest({ x: 0, y: 0 }, 1);
-  assert(nearest.length === 1 && nearest[0] === pA, "RTree nearest");
-  rtree.remove(pB);
+  assert(nearest.length === 1 && nearest[0].id === "A", "RTree nearest");
+  rtree.remove(itemB);
   searchResult = rtree.search({ minX: 0, minY: 0, maxX: 4, maxY: 4 });
   assert(searchResult.length === 2, "RTree remove");
   // Test bulk loading:
@@ -1323,8 +1346,8 @@ function runTests() {
   assert(searchResultClear.length === 0, "RTree clear");
 
   // --- GeometryEngine spatial query using index ---
-  const rtreeForEngine = new RTree<Geometry & Bounded>();
-  rtreeForEngine.bulkLoad([pA, pB, pC]);
+  const rtreeForEngine = new RTree<SpatialItem>();
+  rtreeForEngine.bulkLoad([itemA, itemB, itemC]);
   const engineWithIndex = new GeometryEngine(distance, rtreeForEngine);
   const queryResult = engineWithIndex.query({ x: 2, y: 2 });
   assert(queryResult.length > 0, "GeometryEngine query using spatial index");
