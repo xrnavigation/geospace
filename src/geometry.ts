@@ -373,99 +373,89 @@ export class GeometryEngine implements GeometryOperations {
     return minDist;
   }
   intersects(a: Geometry, b: Geometry): boolean {
-    // First, if both geometries are bounded, check their bounding boxes.
-    let bboxA: BoundingBox, bboxB: BoundingBox;
-    if ("getBoundingBox" in (a as any)) {
-      bboxA = (a as Bounded).getBoundingBox();
-    } else if (isPoint(a)) {
-      bboxA = { minX: a.x, minY: a.y, maxX: a.x, maxY: a.y };
-    } else {
-      throw new Error("Unsupported geometry type for intersection");
-    }
-    if ("getBoundingBox" in (b as any)) {
-      bboxB = (b as Bounded).getBoundingBox();
-    } else if (isPoint(b)) {
-      bboxB = { minX: b.x, minY: b.y, maxX: b.x, maxY: b.y };
-    } else {
-      throw new Error("Unsupported geometry type for intersection");
-    }
+    // Convert points to bounding boxes for consistent handling
+    const bboxA = isPoint(a) ? 
+      { minX: a.x, minY: a.y, maxX: a.x, maxY: a.y } :
+      (a as Bounded).getBoundingBox();
+    const bboxB = isPoint(b) ? 
+      { minX: b.x, minY: b.y, maxX: b.x, maxY: b.y } :
+      (b as Bounded).getBoundingBox();
+
+    // Quick reject using bounding boxes
     if (!bboxIntersects(bboxA, bboxB)) return false;
 
-    // Dispatch by type.
-    if (isPoint(a) && isPoint(b)) {
-      return this.distanceFunc(a, b) < EPSILON;
+    // Handle all geometry type combinations
+    if (isPoint(a)) {
+      if (isPoint(b)) return this.distanceFunc(a, b) < EPSILON;
+      if (isLineSegment(b)) return pointOnSegment(a, b);
+      if (isCircle(b)) return this.distanceFunc(a, b.center) <= b.radius + EPSILON;
+      if (isPolygon(b)) return pointInPolygon(a, b);
     }
-    if (isPoint(a) && isLineSegment(b)) {
-      return pointOnSegment(a, b);
-    }
-    if (isLineSegment(a) && isPoint(b)) {
-      return pointOnSegment(b, a);
-    }
-    if (isPoint(a) && isCircle(b)) {
-      return this.distanceFunc(a, b.center) <= b.radius + EPSILON;
-    }
-    if (isCircle(a) && isPoint(b)) {
-      return this.distanceFunc(b, a.center) <= a.radius + EPSILON;
-    }
-    if (isPoint(a) && isPolygon(b)) {
-      return pointInPolygon(a, b);
-    }
-    if (isPolygon(a) && isPoint(b)) {
-      return pointInPolygon(b, a);
-    }
-    if (isLineSegment(a) && isLineSegment(b)) {
-      return segmentsIntersect(a, b);
-    }
-    if (isLineSegment(a) && isCircle(b)) {
-      return this.pointToCircleDistance(nearestPointOnSegment(b.center, a), b) < EPSILON;
-    }
-    if (isCircle(a) && isLineSegment(b)) {
-      return this.pointToCircleDistance(nearestPointOnSegment(a.center, b), a) < EPSILON;
-    }
-    if (isLineSegment(a) && isPolygon(b)) {
-      if (pointInPolygon(a.start, b) || pointInPolygon(a.end, b)) return true;
-      const vertices = b.vertices;
-      for (let i = 0; i < vertices.length; i++) {
-        const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
-        if (segmentsIntersect(a, edge)) return true;
-      }
-      return false;
-    }
-    if (isPolygon(a) && isLineSegment(b)) {
-      return this.intersects(b, a);
-    }
-    if (isCircle(a) && isCircle(b)) {
-      return this.distanceFunc(a.center, b.center) <= (a.radius + b.radius) + EPSILON;
-    }
-    if (isCircle(a) && isPolygon(b)) {
-      if (pointInPolygon(a.center, b)) return true;
-      const vertices = b.vertices;
-      for (let i = 0; i < vertices.length; i++) {
-        const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
-        if (this.pointToCircleDistance(nearestPointOnSegment(a.center, edge), a) < EPSILON) return true;
-      }
-      return false;
-    }
-    if (isPolygon(a) && isCircle(b)) {
-      return this.intersects(b, a);
-    }
-    if (isPolygon(a) && isPolygon(b)) {
-      // Quick bounding box check already done.
-      for (const v of a.vertices) {
-        if (pointInPolygon(v, b)) return true;
-      }
-      for (const v of b.vertices) {
-        if (pointInPolygon(v, a)) return true;
-      }
-      for (let i = 0; i < a.vertices.length; i++) {
-        const edgeA: LineSegment = { start: a.vertices[i], end: a.vertices[(i + 1) % a.vertices.length] };
-        for (let j = 0; j < b.vertices.length; j++) {
-          const edgeB: LineSegment = { start: b.vertices[j], end: b.vertices[(j + 1) % b.vertices.length] };
-          if (segmentsIntersect(edgeA, edgeB)) return true;
+    
+    if (isLineSegment(a)) {
+      if (isPoint(b)) return pointOnSegment(b, a);
+      if (isLineSegment(b)) return segmentsIntersect(a, b);
+      if (isCircle(b)) return this.pointToCircleDistance(nearestPointOnSegment(b.center, a), b) < EPSILON;
+      if (isPolygon(b)) {
+        if (pointInPolygon(a.start, b) || pointInPolygon(a.end, b)) return true;
+        for (let i = 0; i < b.vertices.length; i++) {
+          const edge: LineSegment = { 
+            start: b.vertices[i], 
+            end: b.vertices[(i + 1) % b.vertices.length] 
+          };
+          if (segmentsIntersect(a, edge)) return true;
         }
+        return false;
       }
-      return false;
     }
+    
+    if (isCircle(a)) {
+      if (isPoint(b)) return this.distanceFunc(b, a.center) <= a.radius + EPSILON;
+      if (isLineSegment(b)) return this.pointToCircleDistance(nearestPointOnSegment(a.center, b), a) < EPSILON;
+      if (isCircle(b)) return this.distanceFunc(a.center, b.center) <= (a.radius + b.radius) + EPSILON;
+      if (isPolygon(b)) {
+        if (pointInPolygon(a.center, b)) return true;
+        for (let i = 0; i < b.vertices.length; i++) {
+          const edge: LineSegment = { 
+            start: b.vertices[i], 
+            end: b.vertices[(i + 1) % b.vertices.length] 
+          };
+          if (this.pointToCircleDistance(nearestPointOnSegment(a.center, edge), a) < EPSILON) return true;
+        }
+        return false;
+      }
+    }
+    
+    if (isPolygon(a)) {
+      if (isPoint(b)) return pointInPolygon(b, a);
+      if (isLineSegment(b)) return this.intersects(b, a);
+      if (isCircle(b)) return this.intersects(b, a);
+      if (isPolygon(b)) {
+        // Check if any vertex of either polygon is inside the other
+        for (const v of a.vertices) {
+          if (pointInPolygon(v, b)) return true;
+        }
+        for (const v of b.vertices) {
+          if (pointInPolygon(v, a)) return true;
+        }
+        // Check if any edges intersect
+        for (let i = 0; i < a.vertices.length; i++) {
+          const edgeA: LineSegment = { 
+            start: a.vertices[i], 
+            end: a.vertices[(i + 1) % a.vertices.length] 
+          };
+          for (let j = 0; j < b.vertices.length; j++) {
+            const edgeB: LineSegment = { 
+              start: b.vertices[j], 
+              end: b.vertices[(j + 1) % b.vertices.length] 
+            };
+            if (segmentsIntersect(edgeA, edgeB)) return true;
+          }
+        }
+        return false;
+      }
+    }
+    
     return false;
   }
   contains(container: Circle | Polygon, contained: Point | LineSegment | Circle | Polygon): boolean {
