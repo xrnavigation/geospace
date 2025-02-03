@@ -195,17 +195,49 @@ export interface SpatialItem extends Bounded {
 // Concrete classes for geometry types
 // ==========================
 
-/** A point with a bounding box (itself) */
+/**
+ * Concrete implementation of a 2D point.
+ * Immutable point with x,y coordinates that can be used in spatial operations.
+ * 
+ * @example
+ * ```typescript
+ * const point = new Point2D(3, 4);
+ * const bbox = point.getBoundingBox(); // Point's bounding box is itself
+ * ```
+ */
 export class Point2D implements Point, Bounded {
   constructor(public readonly x: number, public readonly y: number) {}
+  
+  /**
+   * Gets the bounding box of the point (which is just the point itself).
+   * @returns BoundingBox with minX=maxX=x and minY=maxY=y
+   */
   getBoundingBox(): BoundingBox {
     return { minX: this.x, minY: this.y, maxX: this.x, maxY: this.y };
   }
 }
 
-/** A circle with a bounding box */
+/**
+ * Concrete implementation of a 2D circle.
+ * Immutable circle defined by center point and radius.
+ * 
+ * @example
+ * ```typescript
+ * const circle = new Circle2D({ x: 0, y: 0 }, 5);
+ * const bbox = circle.getBoundingBox(); // Square box containing circle
+ * ```
+ */
 export class Circle2D implements Circle, Bounded {
-  constructor(public readonly center: Point, public readonly radius: number) {}
+  constructor(public readonly center: Point, public readonly radius: number) {
+    if (radius <= 0) {
+      throw new Error("Circle radius must be positive");
+    }
+  }
+
+  /**
+   * Gets the bounding box of the circle.
+   * @returns Square bounding box that fully contains the circle
+   */
   getBoundingBox(): BoundingBox {
     return {
       minX: this.center.x - this.radius,
@@ -216,9 +248,26 @@ export class Circle2D implements Circle, Bounded {
   }
 }
 
-/** A line segment with a bounding box */
+/**
+ * Concrete implementation of a 2D line segment.
+ * Immutable line segment defined by start and end points.
+ * 
+ * @example
+ * ```typescript
+ * const line = new LineSegment2D(
+ *   { x: 0, y: 0 },
+ *   { x: 3, y: 4 }
+ * );
+ * const bbox = line.getBoundingBox(); // Box containing both endpoints
+ * ```
+ */
 export class LineSegment2D implements LineSegment, Bounded {
   constructor(public readonly start: Point, public readonly end: Point) {}
+
+  /**
+   * Gets the bounding box of the line segment.
+   * @returns Minimal axis-aligned box containing both endpoints
+   */
   getBoundingBox(): BoundingBox {
     return {
       minX: Math.min(this.start.x, this.end.x),
@@ -229,13 +278,36 @@ export class LineSegment2D implements LineSegment, Bounded {
   }
 }
 
-/** A polygon with a bounding box */
+/**
+ * Concrete implementation of a 2D polygon.
+ * Immutable polygon defined by an ordered list of vertices.
+ * 
+ * @example
+ * ```typescript
+ * const square = new Polygon2D([
+ *   { x: 0, y: 0 },
+ *   { x: 1, y: 0 },
+ *   { x: 1, y: 1 },
+ *   { x: 0, y: 1 }
+ * ]);
+ * ```
+ */
 export class Polygon2D implements Polygon, Bounded {
+  /**
+   * Creates a new polygon from vertices.
+   * @param vertices Ordered list of vertices (at least 3)
+   * @throws Error if fewer than 3 vertices provided
+   */
   constructor(public readonly vertices: readonly Point[]) {
     if (vertices.length < 3) {
       throw new Error("A polygon must have at least 3 vertices");
     }
   }
+
+  /**
+   * Gets the bounding box of the polygon.
+   * @returns Minimal axis-aligned box containing all vertices
+   */
   getBoundingBox(): BoundingBox {
     return computePolygonBBox(this);
   }
