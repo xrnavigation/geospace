@@ -977,7 +977,7 @@ export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
       this.condenseTree(leafNode);
       if (this.root.entries.length === 1 && !this.root.leaf) {
         this.root = this.root.entries[0].child!;
-        this.root.parent = undefined;
+        this.root.parent = null;
       }
       return true;
     }
@@ -1149,7 +1149,7 @@ export class RTree<T extends Geometry & Bounded> implements SpatialIndex<T> {
       levelNodes = newLevel;
     }
     this.root = levelNodes[0];
-    this.root.parent = undefined;
+    this.root.parent = null;
   }
 }
 
