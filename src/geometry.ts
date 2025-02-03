@@ -906,7 +906,8 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
     this.root = new Node<T>(true);
   }
   insert(item: T): void {
-    const entry: Entry<T> = { bbox: item.geometry.getBoundingBox(), item };
+    const bbox = (item as any).geometry?.getBoundingBox() || item.getBoundingBox();
+    const entry: Entry<T> = { bbox, item };
     this._insert(entry, this.root);
   }
   private _insert(entry: Entry<T>, node: Node<T>): void {
@@ -1155,7 +1156,7 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
       return;
     }
     const M = this.maxEntries;
-    let entries: Entry<T>[] = items.map(item => ({ bbox: item.geometry.getBoundingBox(), item }));
+    let entries: Entry<T>[] = items.map(item => ({ bbox: (item as any).geometry?.getBoundingBox() || item.getBoundingBox(), item }));
     // Determine number of slices S = ceil(sqrt(n / M))
     const S = Math.ceil(Math.sqrt(entries.length / M));
     entries.sort((a, b) => a.bbox.minX - b.bbox.minX);
