@@ -2,14 +2,16 @@ import type {
   Feature,
   FeatureCollection,
   Point as GeoJSONPoint,
-  LineString,
   Polygon as GeoJSONPolygon,
-  Position,
   GeoJsonProperties,
+  LineString,
+  Position,
 } from "geojson";
 
 import {
+  Circle,
   Circle2D,
+  Geometry,
   isCircle,
   isLineSegment,
   isPoint,
@@ -35,7 +37,7 @@ export interface ConversionResult<T> {
 }
 
 /**
- * GeoJSONConverter provides methods for converting between custom geometry objects 
+ * GeoJSONConverter provides methods for converting between custom geometry objects
  * (such as Point2D, LineSegment2D, Circle2D, and Polygon2D) and GeoJSON features.
  *
  * Methods:
