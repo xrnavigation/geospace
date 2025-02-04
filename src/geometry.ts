@@ -383,6 +383,8 @@ export class Circle2D implements Circle, Bounded {
       throw new Error("Circle radius must be positive");
     }
   }
+  get x(): number { return this.center.x; }
+  get y(): number { return this.center.y; }
 
   /**
    * Gets the bounding box of the circle.

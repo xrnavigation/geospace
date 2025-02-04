@@ -24,8 +24,7 @@ import {
   MultiPoint2D,
   RTree,
   SpatialItem,
-  getBBox,
-  MultiPoint,
+  getBBox
 } from "./geometry";
 
 export type SupportedGeoJSON = GeoJSONPoint | LineString | GeoJSONPolygon | MultiPoint;
@@ -70,7 +69,7 @@ export class GeoJSONConverter {
   static toGeoJSON(
     geometry: Geometry,
     options?: GeoJSONOptions
-  ): ConversionResult<Feature> {
+  ): ConversionResult<Feature<SupportedGeoJSON>> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const warnings: string[] = [];
     let geoJsonGeometry: SupportedGeoJSON;
