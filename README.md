@@ -117,7 +117,9 @@ const transformed = transform.apply(polygon);
 
 ### Raycasting Intersection Testing
 
-Raycasting functions allow you to compute intersections of a ray with various geometries like line segments, circles, and polygons. For example:
+In addition to direct raycasting functions (raySegmentIntersection, rayCircleIntersection, and rayPolygonIntersection) that allow you to test individual geometries, the library now offers unified raycasting methods integrated into the GeometryEngine. These methods provide a convenient way to cast rays against a single geometry or multiple geometries.
+
+For example, using direct functions:
 
 ```typescript
 import { Ray, raySegmentIntersection, rayCircleIntersection, rayPolygonIntersection } from '@internal/geospace';
@@ -135,6 +137,33 @@ console.log("Ray-circle intersection:", interCircle);
 const polygon = new Polygon2D([{ x: 3, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 7 }, { x: 3, y: 7 }]);
 const interPoly = rayPolygonIntersection(ray, polygon);
 console.log("Ray-polygon intersection:", interPoly);
+```
+
+Alternatively, using the unified GeometryEngine methods:
+
+```typescript
+import { GeometryEngine, Point2D, Circle2D, Polygon2D, LineSegment } from '@internal/geospace';
+
+const engine = new GeometryEngine((a, b) => Math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2));
+
+const rayOrigin = new Point2D(0, 0);
+const rayDirection = { x: 1, y: 0 };
+
+const seg: LineSegment = { start: { x: 2, y: -1 }, end: { x: 2, y: 1 } };
+const resultSeg = engine.raycast(rayOrigin, rayDirection, seg);
+console.log("Unified raycast line segment:", resultSeg);
+
+const circle = new Circle2D({ x: 5, y: 0 }, 1);
+const resultCircle = engine.raycast(rayOrigin, rayDirection, circle);
+console.log("Unified raycast circle:", resultCircle);
+
+const polygon = new Polygon2D([{ x: 3, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 7 }, { x: 3, y: 7 }]);
+const resultPoly = engine.raycast(rayOrigin, rayDirection, polygon);
+console.log("Unified raycast polygon:", resultPoly);
+
+const resAll = engine.raycastAll(rayOrigin, rayDirection, [seg, circle, polygon]);
+console.log("Unified raycast all (closest):", resAll);
+```
 ```
 
 ## API Documentation
