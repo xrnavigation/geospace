@@ -1437,7 +1437,10 @@ function pointToBBoxDistance(p: Point, bbox: BoundingBox): number {
 
 /**
  * Computes the intersection point of a ray and a line segment.
- * Returns the intersection point if it exists and is in the direction of the ray, otherwise returns null.
+ *
+ * @param ray The ray used for intersection computation.
+ * @param seg The line segment to test for intersection.
+ * @returns The intersection point as a Point if it exists (and lies in the forward direction of the ray and on the segment), otherwise returns null.
  */
 export function raySegmentIntersection(ray: Ray, seg: LineSegment): Point | null {
   const { origin, direction } = ray;
@@ -1460,7 +1463,11 @@ export function raySegmentIntersection(ray: Ray, seg: LineSegment): Point | null
 
 /**
  * Computes the intersection point of a ray and a circle.
- * Returns the closest intersection point in the direction of the ray, or null if no intersection.
+ *
+ * @param ray The ray used for intersection computation.
+ * @param circle The circle to test for intersection.
+ * @returns The closest intersection point on the circle (in the direction of the ray) if an intersection exists; otherwise, returns null.
+ * @remarks When two intersections exist, the closer one to the ray's origin is returned.
  */
 export function rayCircleIntersection(ray: Ray, circle: Circle): Point | null {
   const { origin, direction } = ray;
@@ -1491,7 +1498,11 @@ export function rayCircleIntersection(ray: Ray, circle: Circle): Point | null {
 
 /**
  * Computes the closest intersection point of a ray with a polygon.
- * Returns the closest intersection point if it exists, otherwise returns null.
+ *
+ * @param ray The ray used for intersection computation.
+ * @param poly The polygon whose edges are tested for intersection with the ray.
+ * @returns The closest intersection point (based on distance from the ray's origin) if an intersection exists; otherwise, returns null.
+ * @remarks The function iterates over all polygon edges to determine the nearest valid intersection.
  */
 export function rayPolygonIntersection(ray: Ray, poly: Polygon): Point | null {
   let closest: Point | null = null;
