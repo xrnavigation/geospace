@@ -20,6 +20,7 @@ import {
   Point2D,
   Polygon2D,
   RTree,
+  SpatialItem,
 } from "./geometry";
 
 export type SupportedGeoJSON = GeoJSONPoint | LineString | GeoJSONPolygon;
@@ -137,13 +138,16 @@ export class GeoJSONConverter {
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
   static fromGeoJSON(
-    feature: Feature,
+    feature: Feature<SupportedGeoJSON>,
     options?: GeoJSONOptions
   ): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const warnings: string[] = [];
     if (!feature.geometry) {
       throw new Error("Feature has no geometry");
+    }
+    if (feature.geometry.type === "GeometryCollection") {
+      throw new Error("GeometryCollection is not supported");
     }
 
     if (
@@ -279,7 +283,7 @@ export class GeoJSONConverter {
         const items: T[] = [];
         for (const feature of collection.features) {
           try {
-            const result = GeoJSONConverter.fromGeoJSON(feature, options);
+            const result = GeoJSONConverter.fromGeoJSON(feature as Feature<SupportedGeoJSON>, options);
             if (result.warnings) {
               warnings.push(...result.warnings);
             }
