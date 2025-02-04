@@ -187,6 +187,46 @@ describe('GeometryEngine', () => {
       expect(Math.abs(engine.perimeter(line) - 10)).toBeLessThan(EPSILON);
     });
   });
+
+  describe('Edge Cases - Collinear Segments', () => {
+    it('detects overlapping vertical collinear segments', () => {
+      const line1 = { start: { x: 5, y: 0 }, end: { x: 5, y: 10 } };
+      const line2 = { start: { x: 5, y: 5 }, end: { x: 5, y: 15 } };
+      const engineLocal = new GeometryEngine(euclideanDistance);
+      expect(engineLocal.intersects(line1, line2)).toBe(true);
+    });
+  });
+
+  describe('Polygon Holes - Intersection', () => {
+    const outer = [
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 }
+    ];
+    const hole = [
+      { x: 4, y: 4 },
+      { x: 6, y: 4 },
+      { x: 6, y: 6 },
+      { x: 4, y: 6 }
+    ];
+    const donut = new Polygon2D(outer, [hole]);
+
+    it('line through hole does not intersect polygon', () => {
+      const line = { start: { x: 5, y: 3 }, end: { x: 5, y: 7 } };
+      const engineLocal = new GeometryEngine(euclideanDistance);
+      expect(engineLocal.intersects(line, donut)).toBe(true);
+      
+      const innerLine = { start: { x: 5, y: 4.5 }, end: { x: 5, y: 5.5 } };
+      expect(engineLocal.intersects(innerLine, donut)).toBe(false);
+    });
+
+    it('circle in hole does not intersect polygon', () => {
+      const circle = new Circle2D({ x: 5, y: 5 }, 0.5);
+      const engineLocal = new GeometryEngine(euclideanDistance);
+      expect(engineLocal.intersects(circle, donut)).toBe(false);
+    });
+  });
 });
 
 describe("Edge Cases", () => {

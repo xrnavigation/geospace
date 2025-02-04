@@ -533,11 +533,18 @@ export class AffineTransform implements Transform {
         transformPoint(geometry.end, this.m)
       ) as unknown as T;
     } else if (isCircle(geometry)) {
-      return new Circle2D(
-        transformPoint(geometry.center, this.m),
-        geometry.radius *
-          Math.sqrt(Math.abs(this.m[0] * this.m[3] - this.m[1] * this.m[2]))
-      ) as unknown as T;
+      const cx = transformPoint(geometry.center, this.m);
+      
+      // Check uniform scale by examining the matrix's x-scaling vs y-scaling
+      const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+      const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+
+      if (Math.abs(scaleX - scaleY) > EPSILON) {
+        throw new Error("Cannot apply non-uniform scaling to circles");
+      }
+
+      const newRadius = geometry.radius * scaleX;
+      return new Circle2D(cx, newRadius) as unknown as T;
     } else if (isPolygon(geometry)) {
       return new Polygon2D(
         geometry.exterior.map((v: Point) => transformPoint(v, this.m))
@@ -1162,12 +1169,29 @@ function segmentsIntersect(a: LineSegment, b: LineSegment): boolean {
  * When segments are collinear, check if they overlap.
  */
 function collinearOverlap(a: LineSegment, b: LineSegment): boolean {
+  // Make sure they're collinear first
   if (!collinear(a.start, a.end, b.start)) return false;
-  const points = [a.start, a.end, b.start, b.end];
-  points.sort((p1, p2) => p1.x - p2.x || p1.y - p2.y);
-  const aMax = Math.max(a.start.x, a.end.x);
-  const bMin = Math.min(b.start.x, b.end.x);
-  return bMin <= aMax + EPSILON;
+  
+  // Then see if their bounding boxes overlap
+  const A = {
+    minX: Math.min(a.start.x, a.end.x),
+    minY: Math.min(a.start.y, a.end.y),
+    maxX: Math.max(a.start.x, a.end.x),
+    maxY: Math.max(a.start.y, a.end.y),
+  };
+  const B = {
+    minX: Math.min(b.start.x, b.end.x),
+    minY: Math.min(b.start.y, b.end.y),
+    maxX: Math.max(b.start.x, b.end.x),
+    maxY: Math.max(b.start.y, b.end.y),
+  };
+
+  return (
+    A.minX <= B.maxX + EPSILON &&
+    A.maxX >= B.minX - EPSILON &&
+    A.minY <= B.maxY + EPSILON &&
+    A.maxY >= B.minY - EPSILON
+  );
 }
 
 /**
