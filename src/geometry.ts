@@ -404,7 +404,7 @@ export class LineSegment2D implements LineSegment, Bounded {
 export class Polygon2D implements Polygon, Bounded {
   public readonly exterior: readonly Point[];
   public readonly holes?: readonly (readonly Point[])[];
-  
+
   /**
    * Creates a new polygon.
    * If provided with one argument, it is treated as the exterior ring.
@@ -413,7 +413,10 @@ export class Polygon2D implements Polygon, Bounded {
    * @param holes Optional array of interior rings (each must have at least 3 vertices)
    * @throws Error if the exterior ring or any hole has fewer than 3 vertices
    */
-  constructor(exterior: readonly Point[], holes?: readonly (readonly Point[])[]) {
+  constructor(
+    exterior: readonly Point[],
+    holes?: readonly (readonly Point[])[]
+  ) {
     if (exterior.length < 3) {
       throw new Error("A polygon must have at least 3 vertices");
     }
@@ -576,7 +579,7 @@ function transformPoint(p: Point, m: number[]): Point {
 // ==========================
 // Type guards for geometry types
 // ==========================
-function isPoint(geom: Geometry): geom is Point {
+export function isPoint(geom: Geometry): geom is Point {
   return (
     (geom as Point).x !== undefined &&
     (geom as Point).y !== undefined &&
@@ -585,15 +588,15 @@ function isPoint(geom: Geometry): geom is Point {
     (geom as any).vertices === undefined
   );
 }
-function isLineSegment(geom: Geometry): geom is LineSegment {
+export function isLineSegment(geom: Geometry): geom is LineSegment {
   return (geom as any).start !== undefined && (geom as any).end !== undefined;
 }
-function isCircle(geom: Geometry): geom is Circle {
+export function isCircle(geom: Geometry): geom is Circle {
   return (
     (geom as any).center !== undefined && (geom as any).radius !== undefined
   );
 }
-function isPolygon(geom: Geometry): geom is Polygon {
+export function isPolygon(geom: Geometry): geom is Polygon {
   return (geom as any).exterior !== undefined;
 }
 
@@ -690,25 +693,25 @@ export class GeometryEngine implements GeometryOperations {
   }
   polygonToPolygonDistance(a: Polygon, b: Polygon): number {
     if (this.intersects(a, b)) return 0;
- 
+
     let minDist = Infinity;
- 
+
     // Check all edge pairs of the exterior rings
     for (let i = 0; i < a.exterior.length; i++) {
       const a1 = a.exterior[i];
       const a2 = a.exterior[(i + 1) % a.exterior.length];
       const edgeA: LineSegment = { start: a1, end: a2 };
- 
+
       for (let j = 0; j < b.exterior.length; j++) {
         const b1 = b.exterior[j];
         const b2 = b.exterior[(j + 1) % b.exterior.length];
         const edgeB: LineSegment = { start: b1, end: b2 };
- 
+
         const d = this.lineToLineDistance(edgeA, edgeB);
         minDist = Math.min(minDist, d);
       }
     }
- 
+
     return minDist;
   }
   intersects(a: Geometry, b: Geometry): boolean {
@@ -878,7 +881,9 @@ export class GeometryEngine implements GeometryOperations {
           container.radius - EPSILON
         );
       } else if (isPolygon(contained)) {
-        return contained.exterior.every((v: Point) => this.contains(container, v));
+        return contained.exterior.every((v: Point) =>
+          this.contains(container, v)
+        );
       }
     } else if (isPolygon(container)) {
       if (isPoint(contained)) {
@@ -1095,12 +1100,12 @@ function pointInPolygon(p: Point, poly: Polygon): boolean {
     const xj = vertices[j].x,
       yj = vertices[j].y;
     const intersect =
-      (yi > p.y) !== (yj > p.y) &&
+      yi > p.y !== yj > p.y &&
       p.x < ((xj - xi) * (p.y - yi)) / (yj - yi + EPSILON) + xi;
     if (intersect) inside = !inside;
   }
   if (!inside) return false;
-  
+
   // If there are holes, ensure the point is not inside any hole.
   if (poly.holes) {
     for (const hole of poly.holes) {
@@ -1111,7 +1116,7 @@ function pointInPolygon(p: Point, poly: Polygon): boolean {
         const xj = hole[j].x,
           yj = hole[j].y;
         const intersect =
-          (yi > p.y) !== (yj > p.y) &&
+          yi > p.y !== yj > p.y &&
           p.x < ((xj - xi) * (p.y - yi)) / (yj - yi + EPSILON) + xi;
         if (intersect) inHole = !inHole;
       }
