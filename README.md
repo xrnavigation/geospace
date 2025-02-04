@@ -14,6 +14,7 @@ A high-performance 2D geometry library with spatial indexing capabilities. Featu
 - **Numerical Stability**: Epsilon-based comparisons for robust geometric operations
 - **Memory Efficient**: Cached bounding boxes and optimized data structures
 - **Type Safe**: Full TypeScript support with comprehensive interfaces
+- **Enhanced Polygon Operations**: Support for polygons with holes, advanced interior routines, and cached bounding boxes for optimum performance
 
 ## Quick Start
 
@@ -39,7 +40,7 @@ console.log(`Distance from point to circle: ${dist}`);
 - **Point**: 2D point with x,y coordinates
 - **LineSegment**: Line segment defined by start and end points
 - **Circle**: Circle defined by center point and radius
-- **Polygon**: Polygon defined by ordered vertices
+- **Polygon**: Polygon defined by ordered vertices, supporting holes and enhanced with advanced routines including optimized interior edge detection and cached bounding box computation
 
 ### Key Operations
 
