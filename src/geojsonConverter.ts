@@ -60,7 +60,7 @@ export class GeoJSONConverter {
    * @returns A ConversionResult containing the GeoJSON Feature and any warnings.
    */
   static toGeoJSON(
-    geometry: any,
+    geometry: Geometry,
     options?: GeoJSONOptions
   ): ConversionResult<Feature> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
@@ -137,7 +137,7 @@ export class GeoJSONConverter {
   static fromGeoJSON(
     feature: Feature,
     options?: GeoJSONOptions
-  ): ConversionResult<any> {
+  ): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const warnings: string[] = [];
     if (!feature.geometry) {
@@ -228,7 +228,7 @@ export class GeoJSONConverter {
   static toFeatureCollection(
     items: Array<{
       id: string;
-      geometry: any;
+      geometry: Geometry;
       metadata?: any;
       getBoundingBox: () => any;
     }>,
@@ -265,7 +265,7 @@ export class GeoJSONConverter {
   static enhanceRTree<
     T extends {
       id: string;
-      geometry: any;
+      geometry: Geometry;
       metadata?: any;
       getBoundingBox: () => any;
     }
@@ -316,7 +316,7 @@ export class GeoJSONConverter {
   }
 
   private static circleToPolygon(
-    circle: any,
+    circle: Circle,
     options: GeoJSONOptions
   ): GeoJSONPolygon {
     const { center, radius } = circle;
