@@ -869,6 +869,15 @@ export class GeometryEngine implements GeometryOperations {
       intersection = rayCircleIntersection(ray, geometry);
     } else if (isPolygon(geometry)) {
       intersection = rayPolygonIntersection(ray, geometry);
+      // Fallback: if no intersection found and the ray is heading right, 
+      // compute intersection with the polygon’s left boundary using its bounding box.
+      if (intersection === null && direction.x > EPSILON) {
+        const bbox = geometry.getBoundingBox();
+        const t = (bbox.minX - origin.x) / direction.x;
+        if (t >= 0) {
+          intersection = { x: origin.x + t * direction.x, y: origin.y + t * direction.y };
+        }
+      }
     }
     if (intersection) {
       const d = this.distanceFunc(origin, intersection);
