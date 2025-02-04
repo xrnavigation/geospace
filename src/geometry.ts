@@ -782,10 +782,10 @@ export class GeometryEngine implements GeometryOperations {
         );
       if (isPolygon(b)) {
         if (pointInPolygon(a.start, b) || pointInPolygon(a.end, b)) return true;
-        for (let i = 0; i < b.vertices.length; i++) {
+        for (let i = 0; i < b.exterior.length; i++) {
           const edge: LineSegment = {
-            start: b.vertices[i],
-            end: b.vertices[(i + 1) % b.vertices.length],
+            start: b.exterior[i],
+            end: b.exterior[(i + 1) % b.exterior.length],
           };
           if (segmentsIntersect(a, edge)) return true;
         }
@@ -807,10 +807,10 @@ export class GeometryEngine implements GeometryOperations {
         );
       if (isPolygon(b)) {
         if (pointInPolygon(a.center, b)) return true;
-        for (let i = 0; i < b.vertices.length; i++) {
+        for (let i = 0; i < b.exterior.length; i++) {
           const edge: LineSegment = {
-            start: b.vertices[i],
-            end: b.vertices[(i + 1) % b.vertices.length],
+            start: b.exterior[i],
+            end: b.exterior[(i + 1) % b.exterior.length],
           };
           if (
             this.pointToCircleDistance(
