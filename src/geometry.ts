@@ -859,6 +859,34 @@ export class GeometryEngine implements GeometryOperations {
     }
     return [];
   }
+
+  raycast(origin: Point, direction: Point, geometry: Geometry): RaycastResult | null {
+    const ray: Ray = { origin, direction };
+    let intersection: Point | null = null;
+    if (isLineSegment(geometry)) {
+      intersection = raySegmentIntersection(ray, geometry);
+    } else if (isCircle(geometry)) {
+      intersection = rayCircleIntersection(ray, geometry);
+    } else if (isPolygon(geometry)) {
+      intersection = rayPolygonIntersection(ray, geometry);
+    }
+    if (intersection) {
+      const d = this.distanceFunc(origin, intersection);
+      return { point: intersection, distance: d };
+    }
+    return null;
+  }
+
+  raycastAll(origin: Point, direction: Point, geometries: Geometry[]): RaycastResult | null {
+    let best: RaycastResult | null = null;
+    for (const geom of geometries) {
+      const res = this.raycast(origin, direction, geom);
+      if (res && (best === null || res.distance < best.distance)) {
+        best = res;
+      }
+    }
+    return best;
+  }
 }
 
 // ==========================
