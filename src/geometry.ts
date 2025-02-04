@@ -878,7 +878,7 @@ export class GeometryEngine implements GeometryOperations {
           container.radius - EPSILON
         );
       } else if (isPolygon(contained)) {
-        return contained.vertices.every((v) => this.contains(container, v));
+        return contained.exterior.every((v) => this.contains(container, v));
       }
     } else if (isPolygon(container)) {
       if (isPoint(contained)) {
@@ -935,7 +935,7 @@ export class GeometryEngine implements GeometryOperations {
       return Math.PI * shape.radius * shape.radius;
     } else if (isPolygon(shape)) {
       let sum = 0;
-      const vertices = shape.vertices;
+      const vertices = shape.exterior;
       for (let i = 0; i < vertices.length; i++) {
         const a = vertices[i];
         const b = vertices[(i + 1) % vertices.length];
