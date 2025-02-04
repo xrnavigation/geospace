@@ -537,7 +537,7 @@ export class AffineTransform implements Transform {
       ) as unknown as T;
     } else if (isPolygon(geometry)) {
       return new Polygon2D(
-        geometry.vertices.map((v) => transformPoint(v, this.m))
+        geometry.exterior.map((v: Point) => transformPoint(v, this.m))
       ) as T;
     } else {
       throw new Error("Unsupported geometry type");
