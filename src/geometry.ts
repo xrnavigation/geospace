@@ -830,22 +830,22 @@ export class GeometryEngine implements GeometryOperations {
       if (isCircle(b)) return this.intersects(b, a);
       if (isPolygon(b)) {
         // Check if any vertex of either polygon is inside the other
-        for (const v of a.vertices) {
+        for (const v of a.exterior) {
           if (pointInPolygon(v, b)) return true;
         }
-        for (const v of b.vertices) {
+        for (const v of b.exterior) {
           if (pointInPolygon(v, a)) return true;
         }
         // Check if any edges intersect
-        for (let i = 0; i < a.vertices.length; i++) {
+        for (let i = 0; i < a.exterior.length; i++) {
           const edgeA: LineSegment = {
-            start: a.vertices[i],
-            end: a.vertices[(i + 1) % a.vertices.length],
+            start: a.exterior[i],
+            end: a.exterior[(i + 1) % a.exterior.length],
           };
-          for (let j = 0; j < b.vertices.length; j++) {
+          for (let j = 0; j < b.exterior.length; j++) {
             const edgeB: LineSegment = {
-              start: b.vertices[j],
-              end: b.vertices[(j + 1) % b.vertices.length],
+              start: b.exterior[j],
+              end: b.exterior[(j + 1) % b.exterior.length],
             };
             if (segmentsIntersect(edgeA, edgeB)) return true;
           }
@@ -950,7 +950,7 @@ export class GeometryEngine implements GeometryOperations {
       return 2 * Math.PI * shape.radius;
     } else if (isPolygon(shape)) {
       let sum = 0;
-      const vertices = shape.vertices;
+      const vertices = shape.exterior;
       for (let i = 0; i < vertices.length; i++) {
         const a = vertices[i];
         const b = vertices[(i + 1) % vertices.length];
