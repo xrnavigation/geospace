@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   Circle,
+  Circle2D,
   EPSILON,
   euclideanDistance,
   GeometryEngine,

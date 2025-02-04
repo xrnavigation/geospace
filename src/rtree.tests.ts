@@ -52,11 +52,16 @@ describe("RTree", () => {
 
   test("bulk operations", () => {
     const rtree = new RTree<SpatialItem>();
-    const bulkPoints: Point2D[] = [];
+    const bulkItems: SpatialItem[] = [];
     for (let i = 0; i < 100; i++) {
-      bulkPoints.push(new Point2D(i, i));
+      const point = new Point2D(i, i);
+      bulkItems.push({
+        id: `point-${i}`,
+        geometry: point,
+        getBoundingBox: () => point.getBoundingBox()
+      });
     }
-    rtree.bulkLoad(bulkPoints);
+    rtree.bulkLoad(bulkItems);
 
     const searchResultBulk = rtree.search({
       minX: 0,
