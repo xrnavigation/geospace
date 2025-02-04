@@ -4,7 +4,8 @@ A high-performance 2D geometry library with spatial indexing capabilities. Featu
 
 ## Features
 
-- **Comprehensive Geometry Support**: Points, lines, circles, and polygons with full type safety
+- **Comprehensive Geometry Support**: Points, lines, circles, polygons, and rays with full type safety
+- **Raycasting**: Intersection testing for rays with line segments, circles, and polygons
 - **Spatial Indexing**: R-tree implementation with bulk-loading and nearest-neighbor search
 - **Numerical Stability**: Epsilon-based comparisons for robust geometric operations
 - **Memory Efficient**: Cached bounding boxes and optimized data structures
@@ -112,6 +113,28 @@ const transform = new AffineTransform()
 
 // Apply to geometry
 const transformed = transform.apply(polygon);
+```
+
+### Raycasting Intersection Testing
+
+Raycasting functions allow you to compute intersections of a ray with various geometries like line segments, circles, and polygons. For example:
+
+```typescript
+import { Ray, raySegmentIntersection, rayCircleIntersection, rayPolygonIntersection } from '@internal/geospace';
+
+const ray: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
+
+const seg: LineSegment = { start: { x: 5, y: -1 }, end: { x: 5, y: 1 } };
+const interSeg = raySegmentIntersection(ray, seg);
+console.log("Ray-segment intersection:", interSeg);
+
+const circle: Circle = { center: { x: 5, y: 0 }, radius: 1 };
+const interCircle = rayCircleIntersection(ray, circle);
+console.log("Ray-circle intersection:", interCircle);
+
+const polygon = new Polygon2D([{ x: 3, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 7 }, { x: 3, y: 7 }]);
+const interPoly = rayPolygonIntersection(ray, polygon);
+console.log("Ray-polygon intersection:", interPoly);
 ```
 
 ## API Documentation
