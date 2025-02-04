@@ -73,28 +73,36 @@ export interface LineSegment {
 }
 
 /**
- * Represents a polygon defined by an ordered list of vertices.
- * The vertices should form a closed loop but should not repeat the first vertex.
- * All properties are immutable after creation.
+ * Represents a polygon with an exterior ring and optional holes, following the GeoJSON format.
  *
  * @example
  * ```typescript
  * const square: Polygon = {
- *   vertices: [
+ *   exterior: [
  *     { x: 0, y: 0 },
- *     { x: 1, y: 0 },
- *     { x: 1, y: 1 },
- *     { x: 0, y: 1 }
+ *     { x: 10, y: 0 },
+ *     { x: 10, y: 10 },
+ *     { x: 0, y: 10 }
+ *   ],
+ *   holes: [
+ *     [
+ *       { x: 3, y: 3 },
+ *       { x: 7, y: 3 },
+ *       { x: 7, y: 7 },
+ *       { x: 3, y: 7 }
+ *     ]
  *   ]
  * };
  * ```
  */
 export interface Polygon {
-  /** Ordered list of polygon vertices */
-  readonly vertices: readonly Point[];
+  /** Exterior ring of the polygon: ordered list of vertices (do not repeat the first vertex) */
+  readonly exterior: readonly Point[];
+  /** Optional interior rings (holes), each as an ordered list of vertices */
+  readonly holes?: readonly (readonly Point[])[];
   /**
-   * Gets the bounding box of the polygon.
-   * @returns The axis-aligned bounding box containing the polygon
+   * Gets the bounding box of the polygon (based on its exterior ring).
+   * @returns The axis-aligned bounding box containing the exterior ring
    */
   getBoundingBox(): BoundingBox;
 }
@@ -361,34 +369,68 @@ export class LineSegment2D implements LineSegment, Bounded {
 }
 
 /**
- * Concrete implementation of a 2D polygon.
- * Immutable polygon defined by an ordered list of vertices.
+ * Concrete implementation of a 2D polygon with optional holes.
+ * Immutable polygon defined by an exterior ring and optional interior rings.
  *
  * @example
  * ```typescript
+ * // Simple polygon
  * const square = new Polygon2D([
  *   { x: 0, y: 0 },
- *   { x: 1, y: 0 },
- *   { x: 1, y: 1 },
- *   { x: 0, y: 1 }
+ *   { x: 10, y: 0 },
+ *   { x: 10, y: 10 },
+ *   { x: 0, y: 10 }
  * ]);
+ *
+ * // Polygon with a hole
+ * const donut = new Polygon2D(
+ *   [
+ *     { x: 0, y: 0 },
+ *     { x: 10, y: 0 },
+ *     { x: 10, y: 10 },
+ *     { x: 0, y: 10 }
+ *   ],
+ *   [
+ *     [
+ *       { x: 3, y: 3 },
+ *       { x: 7, y: 3 },
+ *       { x: 7, y: 7 },
+ *       { x: 3, y: 7 }
+ *     ]
+ *   ]
+ * );
  * ```
  */
 export class Polygon2D implements Polygon, Bounded {
+  public readonly exterior: readonly Point[];
+  public readonly holes?: readonly (readonly Point[])[];
+  
   /**
-   * Creates a new polygon from vertices.
-   * @param vertices Ordered list of vertices (at least 3)
-   * @throws Error if fewer than 3 vertices provided
+   * Creates a new polygon.
+   * If provided with one argument, it is treated as the exterior ring.
+   * Optionally, a second argument may be provided as the array of holes.
+   * @param exterior Ordered list of vertices for the exterior ring (at least 3)
+   * @param holes Optional array of interior rings (each must have at least 3 vertices)
+   * @throws Error if the exterior ring or any hole has fewer than 3 vertices
    */
-  constructor(public readonly vertices: readonly Point[]) {
-    if (vertices.length < 3) {
+  constructor(exterior: readonly Point[], holes?: readonly (readonly Point[])[]) {
+    if (exterior.length < 3) {
       throw new Error("A polygon must have at least 3 vertices");
+    }
+    this.exterior = exterior;
+    if (holes) {
+      for (const hole of holes) {
+        if (hole.length < 3) {
+          throw new Error("A polygon hole must have at least 3 vertices");
+        }
+      }
+      this.holes = holes;
     }
   }
 
   /**
-   * Gets the bounding box of the polygon.
-   * @returns Minimal axis-aligned box containing all vertices
+   * Gets the bounding box of the polygon based on its exterior ring.
+   * @returns Minimal axis-aligned box containing the exterior ring
    */
   getBoundingBox(): BoundingBox {
     return computePolygonBBox(this);
@@ -552,7 +594,7 @@ function isCircle(geom: Geometry): geom is Circle {
   );
 }
 function isPolygon(geom: Geometry): geom is Polygon {
-  return (geom as any).vertices !== undefined;
+  return (geom as any).exterior !== undefined;
 }
 
 // ==========================
@@ -588,7 +630,7 @@ export class GeometryEngine implements GeometryOperations {
   pointToPolygonDistance(p: Point, poly: Polygon): number {
     if (pointInPolygon(p, poly)) return 0;
     let minDist = Infinity;
-    const vertices = poly.vertices;
+    const vertices = poly.exterior;
     for (let i = 0; i < vertices.length; i++) {
       const a = vertices[i];
       const b = vertices[(i + 1) % vertices.length];
@@ -648,25 +690,25 @@ export class GeometryEngine implements GeometryOperations {
   }
   polygonToPolygonDistance(a: Polygon, b: Polygon): number {
     if (this.intersects(a, b)) return 0;
-
+ 
     let minDist = Infinity;
-
-    // Check all edge pairs
-    for (let i = 0; i < a.vertices.length; i++) {
-      const a1 = a.vertices[i];
-      const a2 = a.vertices[(i + 1) % a.vertices.length];
+ 
+    // Check all edge pairs of the exterior rings
+    for (let i = 0; i < a.exterior.length; i++) {
+      const a1 = a.exterior[i];
+      const a2 = a.exterior[(i + 1) % a.exterior.length];
       const edgeA: LineSegment = { start: a1, end: a2 };
-
-      for (let j = 0; j < b.vertices.length; j++) {
-        const b1 = b.vertices[j];
-        const b2 = b.vertices[(j + 1) % b.vertices.length];
+ 
+      for (let j = 0; j < b.exterior.length; j++) {
+        const b1 = b.exterior[j];
+        const b2 = b.exterior[(j + 1) % b.exterior.length];
         const edgeB: LineSegment = { start: b1, end: b2 };
-
+ 
         const d = this.lineToLineDistance(edgeA, edgeB);
         minDist = Math.min(minDist, d);
       }
     }
-
+ 
     return minDist;
   }
   intersects(a: Geometry, b: Geometry): boolean {
@@ -883,7 +925,7 @@ export class GeometryEngine implements GeometryOperations {
         }
         return true;
       } else if (isPolygon(contained)) {
-        return contained.vertices.every((v) => pointInPolygon(v, container));
+        return contained.exterior.every((v) => pointInPolygon(v, container));
       }
     }
     return false;
@@ -1015,14 +1057,14 @@ export class GeometryEngine implements GeometryOperations {
 // ==========================
 
 /**
- * Compute bounding box of a polygon from its vertices.
+ * Compute bounding box of a polygon based on its exterior ring.
  */
 function computePolygonBBox(poly: Polygon): BoundingBox {
   let minX = Infinity,
     minY = Infinity,
     maxX = -Infinity,
     maxY = -Infinity;
-  for (const v of poly.vertices) {
+  for (const v of poly.exterior) {
     if (v.x < minX) minX = v.x;
     if (v.y < minY) minY = v.y;
     if (v.x > maxX) maxX = v.x;
@@ -1035,7 +1077,7 @@ function computePolygonBBox(poly: Polygon): BoundingBox {
  * Optimized point–in–polygon using a bounding box check first.
  */
 function pointInPolygon(p: Point, poly: Polygon): boolean {
-  // Quick bounding box check.
+  // Quick bounding box check using the exterior ring.
   const bbox = computePolygonBBox(poly);
   if (
     p.x < bbox.minX - EPSILON ||
@@ -1046,21 +1088,40 @@ function pointInPolygon(p: Point, poly: Polygon): boolean {
     return false;
   }
   let inside = false;
-  const vertices = poly.vertices;
+  const vertices = poly.exterior;
   for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
     const xi = vertices[i].x,
       yi = vertices[i].y;
     const xj = vertices[j].x,
       yj = vertices[j].y;
     const intersect =
-      yi > p.y !== yj > p.y &&
+      (yi > p.y) !== (yj > p.y) &&
       p.x < ((xj - xi) * (p.y - yi)) / (yj - yi + EPSILON) + xi;
     if (intersect) inside = !inside;
   }
-  return inside;
+  if (!inside) return false;
+  
+  // If there are holes, ensure the point is not inside any hole.
+  if (poly.holes) {
+    for (const hole of poly.holes) {
+      let inHole = false;
+      for (let i = 0, j = hole.length - 1; i < hole.length; j = i++) {
+        const xi = hole[i].x,
+          yi = hole[i].y;
+        const xj = hole[j].x,
+          yj = hole[j].y;
+        const intersect =
+          (yi > p.y) !== (yj > p.y) &&
+          p.x < ((xj - xi) * (p.y - yi)) / (yj - yi + EPSILON) + xi;
+        if (intersect) inHole = !inHole;
+      }
+      if (inHole) return false;
+    }
+  }
+  return true;
 }
 function onPolygonBoundary(p: Point, poly: Polygon): boolean {
-  const vertices = poly.vertices;
+  const vertices = poly.exterior;
   for (let i = 0; i < vertices.length; i++) {
     const edge: LineSegment = {
       start: vertices[i],
@@ -1754,9 +1815,9 @@ export function rayCircleIntersection(ray: Ray, circle: Circle): Point | null {
 export function rayPolygonIntersection(ray: Ray, poly: Polygon): Point | null {
   let closest: Point | null = null;
   let closestT = Infinity;
-  for (let i = 0; i < poly.vertices.length; i++) {
-    const a = poly.vertices[i];
-    const b = poly.vertices[(i + 1) % poly.vertices.length];
+  for (let i = 0; i < poly.exterior.length; i++) {
+    const a = poly.exterior[i];
+    const b = poly.exterior[(i + 1) % poly.exterior.length];
     const inter = raySegmentIntersection(ray, { start: a, end: b });
     if (inter) {
       const t = Math.sqrt(

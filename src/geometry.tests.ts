@@ -212,3 +212,32 @@ describe("Edge Cases", () => {
     expect(engineLocal.pointToPointDistance(p, p)).toBe(0);
   });
 });
+
+describe('Polygon with Holes', () => {
+  const outer = [
+    { x: 0, y: 0 },
+    { x: 10, y: 0 },
+    { x: 10, y: 10 },
+    { x: 0, y: 10 },
+  ];
+  const hole = [
+    { x: 3, y: 3 },
+    { x: 7, y: 3 },
+    { x: 7, y: 7 },
+    { x: 3, y: 7 },
+  ];
+  const donut = new Polygon2D(outer, [hole]);
+
+  it('detects point inside exterior and outside hole as inside polygon', () => {
+    expect(donut.getBoundingBox()).toEqual({ minX: 0, minY: 0, maxX: 10, maxY: 10 });
+    const engineLocal = new GeometryEngine(euclideanDistance);
+    // Points clearly in the exterior but not in the hole
+    expect(engineLocal.intersects({ x: 1, y: 1 }, donut)).toBe(true);
+    expect(engineLocal.contains(donut, { x: 8, y: 8 })).toBe(true);
+  });
+
+  it('detects point inside the hole as outside polygon', () => {
+    const engineLocal = new GeometryEngine(euclideanDistance);
+    expect(engineLocal.intersects({ x: 5, y: 5 }, donut)).toBe(false);
+  });
+});
