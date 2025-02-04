@@ -329,9 +329,6 @@ export class GeoJSONConverter {
         throw new Error("Invalid position");
       }
     }
-    const transformed = options.transformCoordinates
-      ? options.transformCoordinates(pos)
-      : pos;
-    return [transformed[0], transformed[1]];
+    return [pos[0], pos[1]];
   }
 }
