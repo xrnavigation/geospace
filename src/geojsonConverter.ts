@@ -145,7 +145,7 @@ export class GeoJSONConverter {
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
   static fromGeoJSON(
-    feature: Feature<SupportedGeoJSON>,
+    feature: Feature,
     options?: GeoJSONOptions
   ): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
@@ -153,8 +153,8 @@ export class GeoJSONConverter {
     if (!feature.geometry) {
       throw new Error("Feature has no geometry");
     }
-    if (feature.geometry.type === "GeometryCollection") {
-      throw new Error("GeometryCollection is not supported");
+    if (!["Point", "LineString", "Polygon", "MultiPoint"].includes(feature.geometry.type)) {
+      throw new Error(`Unsupported GeoJSON geometry type: ${feature.geometry.type}`);
     }
 
     if (
