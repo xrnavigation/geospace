@@ -244,7 +244,7 @@ export interface RaycastResult {
 }
 
 /** Union type of all geometry types */
-export type Geometry = Point | LineSegment | Circle | Polygon;
+export type Geometry = Point | LineSegment | Circle | Polygon | MultiPoint2D;
 
 /**
  * Represents a ray in 2D space starting from an origin and extending infinitely in a given direction.
@@ -317,6 +317,24 @@ export class Point2D implements Point, Bounded {
  * const bbox = circle.getBoundingBox(); // Square box containing circle
  * ```
  */
+export class MultiPoint2D implements Geometry, Bounded {
+  constructor(public readonly points: readonly Point2D[]) {
+    if (points.length === 0) {
+      throw new Error("MultiPoint must contain at least one point");
+    }
+  }
+  getBoundingBox(): BoundingBox {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const p of this.points) {
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y > maxY) maxY = p.y;
+    }
+    return { minX, minY, maxX, maxY };
+  }
+}
+
 export class Circle2D implements Circle, Bounded {
   constructor(public readonly center: Point, public readonly radius: number) {
     if (radius <= 0) {
@@ -605,6 +623,9 @@ export function isCircle(geom: Geometry): geom is Circle {
 }
 export function isPolygon(geom: Geometry): geom is Polygon {
   return (geom as any).exterior !== undefined;
+}
+export function isMultiPoint(geom: Geometry): geom is MultiPoint2D {
+  return geom instanceof MultiPoint2D;
 }
 
 // ==========================

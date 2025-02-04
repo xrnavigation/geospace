@@ -2,6 +2,7 @@ import type {
   Feature,
   FeatureCollection,
   Point as GeoJSONPoint,
+  MultiPoint,
   Polygon as GeoJSONPolygon,
   GeoJsonProperties,
   LineString,
@@ -19,11 +20,12 @@ import {
   LineSegment2D,
   Point2D,
   Polygon2D,
+  MultiPoint2D,
   RTree,
   SpatialItem,
 } from "./geometry";
 
-export type SupportedGeoJSON = GeoJSONPoint | LineString | GeoJSONPolygon;
+export type SupportedGeoJSON = GeoJSONPoint | LineString | GeoJSONPolygon | MultiPoint;
 
 export interface GeoJSONOptions {
   circleMode?: "polygon" | "point-radius";
@@ -71,7 +73,12 @@ export class GeoJSONConverter {
     let geoJsonGeometry: SupportedGeoJSON;
 
     try {
-      if (isPoint(geometry)) {
+      if (geometry instanceof MultiPoint2D) {
+        geoJsonGeometry = {
+          type: "MultiPoint",
+          coordinates: geometry.points.map((p) => this.toPosition([p.x, p.y], opts)),
+        };
+      } else if (isPoint(geometry)) {
         geoJsonGeometry = {
           type: "Point",
           coordinates: this.toPosition([geometry.x, geometry.y], opts),
@@ -217,6 +224,20 @@ export class GeoJSONConverter {
         });
         return {
           geometry: new Polygon2D(exteriorPoints, holes),
+          warnings,
+        };
+      }
+      case "MultiPoint": {
+        const multi = feature.geometry as MultiPoint;
+        if (multi.coordinates.length < 1) {
+          throw new Error("MultiPoint must have at least one coordinate");
+        }
+        const points = multi.coordinates.map((coord) => {
+          const [x, y] = this.fromPosition(coord, opts);
+          return new Point2D(x, y);
+        });
+        return {
+          geometry: new MultiPoint2D(points),
           warnings,
         };
       }
