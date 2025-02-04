@@ -115,7 +115,7 @@ export class GeoJSONConverter {
       throw new Error(`GeoJSON conversion failed: ${err.message}`);
     }
 
-    const feature: Feature = {
+    const feature: Feature<SupportedGeoJSON> = {
       type: "Feature",
       geometry: geoJsonGeometry,
       properties: {},
@@ -265,12 +265,7 @@ export class GeoJSONConverter {
    * @returns An object with 'loadGeoJSON' and 'toGeoJSON' methods.
    */
   static enhanceRTree<
-    T extends {
-      id: string;
-      geometry: Geometry;
-      metadata?: any;
-      getBoundingBox: () => any;
-    }
+    T extends SpatialItem
   >(tree: RTree<T>) {
     return {
       loadGeoJSON(
