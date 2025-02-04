@@ -203,6 +203,17 @@ export interface GeometryOperations {
 /** Union type of all geometry types */
 export type Geometry = Point | LineSegment | Circle | Polygon;
 
+/**
+ * Represents a ray in 2D space starting from an origin and extending infinitely in a given direction.
+ * The direction vector should be normalized.
+ */
+export interface Ray {
+  /** Starting point of the ray */
+  readonly origin: Point;
+  /** Direction vector of the ray (should be normalized) */
+  readonly direction: Point;
+}
+
 /** Spatial index interface for efficient spatial queries */
 export interface SpatialIndex<T extends Bounded> {
   /** Add item to index */
