@@ -5,7 +5,7 @@ export default defineConfig({
     lib: {
       entry: 'src/geometry.ts',
       name: 'geometry',
-      fileName: (format) => `geometry.${format}.js`,
+      fileName: (format: string) => `geometry.${format}.js`,
       formats: ['es', 'umd']
     },
     sourcemap: true,
