@@ -1424,6 +1424,82 @@ function pointToBBoxDistance(p: Point, bbox: BoundingBox): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+/**
+ * Computes the intersection point of a ray and a line segment.
+ * Returns the intersection point if it exists and is in the direction of the ray, otherwise returns null.
+ */
+export function raySegmentIntersection(ray: Ray, seg: LineSegment): Point | null {
+  const { origin, direction } = ray;
+  const { start, end } = seg;
+  const r_px = origin.x, r_py = origin.y;
+  const r_dx = direction.x, r_dy = direction.y;
+  const s_px = start.x, s_py = start.y;
+  const s_dx = end.x - start.x, s_dy = end.y - start.y;
+  const denominator = r_dx * s_dy - r_dy * s_dx;
+  if (Math.abs(denominator) < EPSILON) {
+    return null;
+  }
+  const t = ((s_px - r_px) * s_dy - (s_py - r_py) * s_dx) / denominator;
+  const u = ((s_px - r_px) * r_dy - (s_py - r_py) * r_dx) / denominator;
+  if (t >= 0 && u >= 0 && u <= 1) {
+    return { x: r_px + t * r_dx, y: r_py + t * r_dy };
+  }
+  return null;
+}
+
+/**
+ * Computes the intersection point of a ray and a circle.
+ * Returns the closest intersection point in the direction of the ray, or null if no intersection.
+ */
+export function rayCircleIntersection(ray: Ray, circle: Circle): Point | null {
+  const { origin, direction } = ray;
+  const ox = origin.x, oy = origin.y;
+  const dx = direction.x, dy = direction.y;
+  const cx = circle.center.x, cy = circle.center.y;
+  const r = circle.radius;
+  const a = dx * dx + dy * dy;
+  const b = 2 * (dx * (ox - cx) + dy * (oy - cy));
+  const c = (ox - cx) * (ox - cx) + (oy - cy) * (oy - cy) - r * r;
+  const discriminant = b * b - 4 * a * c;
+  if (discriminant < 0) return null;
+  const sqrtDisc = Math.sqrt(discriminant);
+  const t1 = (-b - sqrtDisc) / (2 * a);
+  const t2 = (-b + sqrtDisc) / (2 * a);
+  let t: number;
+  if (t1 >= 0 && t2 >= 0) {
+    t = Math.min(t1, t2);
+  } else if (t1 >= 0) {
+    t = t1;
+  } else if (t2 >= 0) {
+    t = t2;
+  } else {
+    return null;
+  }
+  return { x: ox + t * dx, y: oy + t * dy };
+}
+
+/**
+ * Computes the closest intersection point of a ray with a polygon.
+ * Returns the closest intersection point if it exists, otherwise returns null.
+ */
+export function rayPolygonIntersection(ray: Ray, poly: Polygon): Point | null {
+  let closest: Point | null = null;
+  let closestT = Infinity;
+  for (let i = 0; i < poly.vertices.length; i++) {
+    const a = poly.vertices[i];
+    const b = poly.vertices[(i + 1) % poly.vertices.length];
+    const inter = raySegmentIntersection(ray, { start: a, end: b });
+    if (inter) {
+      const t = Math.sqrt((inter.x - ray.origin.x) ** 2 + (inter.y - ray.origin.y) ** 2);
+      if (t < closestT) {
+        closestT = t;
+        closest = inter;
+      }
+    }
+  }
+  return closest;
+}
+
 // ==========================
 // Test suite
 // ==========================
@@ -1559,6 +1635,54 @@ function runTests() {
   const queryResult = engineWithIndex.query({ x: 2, y: 2 });
   assert(queryResult.length > 0, "GeometryEngine query using spatial index");
 
+  // --- Raycasting tests ---
+  {
+    // Ray vs line segment: hit
+    const ray1: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
+    const seg1: LineSegment = { start: { x: 2, y: -1 }, end: { x: 2, y: 1 } };
+    const inter1 = raySegmentIntersection(ray1, seg1);
+    assert(
+      inter1 !== null &&
+      Math.abs(inter1.x - 2) < EPSILON &&
+      Math.abs(inter1.y - 0) < EPSILON,
+      "Ray-segment intersection (hit)"
+    );
+
+    // Ray vs line segment: miss
+    const seg2: LineSegment = { start: { x: 0, y: 1 }, end: { x: 1, y: 1 } };
+    const inter2 = raySegmentIntersection(ray1, seg2);
+    assert(inter2 === null, "Ray-segment intersection (miss)");
+
+    // Ray vs circle: hit
+    const circle2: Circle = { center: { x: 5, y: 0 }, radius: 1 };
+    const inter3 = rayCircleIntersection(ray1, circle2);
+    assert(
+      inter3 !== null &&
+      Math.abs(inter3.x - 4) < EPSILON,
+      "Ray-circle intersection (hit)"
+    );
+
+    // Ray vs circle: miss
+    const circle3: Circle = { center: { x: 0, y: 5 }, radius: 1 };
+    const inter4 = rayCircleIntersection(ray1, circle3);
+    assert(inter4 === null, "Ray-circle intersection (miss)");
+
+    // Ray vs polygon: hit
+    const square2 = new Polygon2D([{ x: 3, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 7 }, { x: 3, y: 7 }]);
+    const ray2: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 1 } };
+    const inter5 = rayPolygonIntersection(ray2, square2);
+    assert(
+      inter5 !== null &&
+      Math.abs(inter5.x - 3) < EPSILON &&
+      Math.abs(inter5.y - 3) < EPSILON,
+      "Ray-polygon intersection (hit)"
+    );
+
+    // Ray vs polygon: miss
+    const square3 = new Polygon2D([{ x: -7, y: -7 }, { x: -3, y: -7 }, { x: -3, y: -3 }, { x: -7, y: -3 }]);
+    const inter6 = rayPolygonIntersection(ray2, square3);
+    assert(inter6 === null, "Ray-polygon intersection (miss)");
+  }
   console.log("All tests passed.");
 }
 
