@@ -878,7 +878,7 @@ export class GeometryEngine implements GeometryOperations {
           container.radius - EPSILON
         );
       } else if (isPolygon(contained)) {
-        return contained.exterior.every((v) => this.contains(container, v));
+        return contained.exterior.every((v: Point) => this.contains(container, v));
       }
     } else if (isPolygon(container)) {
       if (isPoint(contained)) {
