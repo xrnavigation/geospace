@@ -244,7 +244,7 @@ export interface RaycastResult {
 }
 
 /** Union type of all geometry types */
-export type Geometry = Point | LineSegment | Circle | Polygon | MultiPoint2D;
+export type Geometry = Point2D | LineSegment2D | Circle2D | Polygon2D | MultiPoint2D;
 
 /**
  * Represents a ray in 2D space starting from an origin and extending infinitely in a given direction.
@@ -317,7 +317,7 @@ export class Point2D implements Point, Bounded {
  * const bbox = circle.getBoundingBox(); // Square box containing circle
  * ```
  */
-export class MultiPoint2D implements Geometry, Bounded {
+export class MultiPoint2D implements Bounded {
   constructor(public readonly points: readonly Point2D[]) {
     if (points.length === 0) {
       throw new Error("MultiPoint must contain at least one point");

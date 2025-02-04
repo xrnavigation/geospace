@@ -145,7 +145,7 @@ export class GeoJSONConverter {
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
   static fromGeoJSON(
-    feature: Feature,
+    feature: Feature<SupportedGeoJSON, GeoJsonProperties>,
     options?: GeoJSONOptions
   ): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
