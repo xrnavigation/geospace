@@ -362,8 +362,8 @@ export class GeoJSONConverter {
 
   private static closeRing(coords: Position[]): Position[] {
     if (coords.length === 0) return coords;
-    const first = coords[0];
-    const last = coords[coords.length - 1];
+    const first = coords[0] as number[];
+    const last = coords[coords.length - 1] as number[];
     if (first[0] !== last[0] || first[1] !== last[1]) {
       coords.push([...first]);
     }

@@ -248,7 +248,7 @@ export interface RaycastResult {
 }
 
 /** Union type of all geometry types */
-export type Geometry = (Point | LineSegment | Circle | Polygon | MultiPoint) & Partial<Bounded>;
+export type Geometry = Point2D | LineSegment2D | Circle2D | Polygon2D | MultiPoint2D;
 
 export function getBBox(geom: Geometry): BoundingBox {
   if (geom && typeof (geom as any).getBoundingBox === "function") {
