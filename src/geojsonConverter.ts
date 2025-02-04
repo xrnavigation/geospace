@@ -155,7 +155,8 @@ export class GeoJSONConverter {
       feature.properties?.geometryType === "Circle" &&
       typeof feature.properties?.radius === "number"
     ) {
-      const [x, y] = this.fromPosition(feature.geometry.coordinates, opts);
+      const { coordinates } = feature.geometry as GeoJSONPoint;
+      const [x, y] = this.fromPosition(coordinates, opts);
       return {
         geometry: new Circle2D({ x, y }, feature.properties.radius),
         warnings,
@@ -164,15 +165,17 @@ export class GeoJSONConverter {
 
     switch (feature.geometry.type) {
       case "Point": {
-        const [x, y] = this.fromPosition(feature.geometry.coordinates, opts);
+        const { coordinates } = feature.geometry as GeoJSONPoint;
+        const [x, y] = this.fromPosition(coordinates, opts);
         return { geometry: new Point2D(x, y), warnings };
       }
       case "LineString": {
-        if (feature.geometry.coordinates.length < 2) {
+        const lineGeom = feature.geometry as LineString;
+        if (lineGeom.coordinates.length < 2) {
           throw new Error("LineString must have at least two coordinates");
         }
-        const start = feature.geometry.coordinates[0];
-        const end = feature.geometry.coordinates[1];
+        const start = lineGeom.coordinates[0];
+        const end = lineGeom.coordinates[1];
         const [x1, y1] = this.fromPosition(start, opts);
         const [x2, y2] = this.fromPosition(end, opts);
         return {
@@ -181,10 +184,11 @@ export class GeoJSONConverter {
         };
       }
       case "Polygon": {
-        if (feature.geometry.coordinates.length < 1) {
+        const polyGeom = feature.geometry as GeoJSONPolygon;
+        if (polyGeom.coordinates.length < 1) {
           throw new Error("Polygon must contain at least one ring");
         }
-        const exteriorRing = feature.geometry.coordinates[0];
+        const exteriorRing = polyGeom.coordinates[0];
         let exterior = exteriorRing.slice();
         if (
           exterior.length > 1 &&
@@ -197,8 +201,7 @@ export class GeoJSONConverter {
           const [x, y] = this.fromPosition(pos, opts);
           return { x, y };
         });
-
-        const holes = feature.geometry.coordinates.slice(1).map((ring) => {
+        const holes = polyGeom.coordinates.slice(1).map((ring) => {
           let r = ring.slice();
           if (
             r.length > 1 &&
@@ -212,7 +215,6 @@ export class GeoJSONConverter {
             return { x, y };
           });
         });
-
         return {
           geometry: new Polygon2D(exteriorPoints, holes),
           warnings,
