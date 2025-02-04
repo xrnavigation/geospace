@@ -2,9 +2,9 @@
 
 A high-performance 2D geometry library with spatial indexing capabilities. Features numerically stable operations, quadratic-split R-tree indexing, and optimized polygon routines.
 
-![Build Status](https://img.shields.io/github/workflow/status/internal/geospace/CI)
-![Coverage](https://img.shields.io/codecov/c/github/internal/geospace)
-![Version](https://img.shields.io/npm/v/@internal/geospace)
+![Build Status](https://img.shields.io/github/workflow/status/xrnavigation/geospace/CI)
+![Coverage](https://img.shields.io/codecov/c/github/xrnavigation/geospace)
+![Version](https://img.shields.io/npm/v/@xrnavigation/geospace)
 
 ## Features
 
@@ -14,12 +14,6 @@ A high-performance 2D geometry library with spatial indexing capabilities. Featu
 - **Numerical Stability**: Epsilon-based comparisons for robust geometric operations
 - **Memory Efficient**: Cached bounding boxes and optimized data structures
 - **Type Safe**: Full TypeScript support with comprehensive interfaces
-
-## Installation
-
-```bash
-npm install @internal/geospace
-```
 
 ## Quick Start
 
@@ -270,14 +264,6 @@ Common issues and solutions:
    - Avoid circular references
    - Use WeakMap for caches
 
-## Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Add tests
-4. Update documentation
-5. Submit PR
-
 ## API Documentation
 
 See inline TypeScript interfaces and comments for detailed API documentation:
@@ -298,6 +284,3 @@ Run the comprehensive test suite:
 npm test
 ```
 
-## Internal Use Only
-
-This code is for internal use and is not licensed for external distribution.
