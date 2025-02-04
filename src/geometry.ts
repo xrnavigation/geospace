@@ -895,7 +895,7 @@ export class GeometryEngine implements GeometryOperations {
           )
         )
           return false;
-        const vertices = container.vertices;
+        const vertices = container.exterior;
         for (let i = 0; i < vertices.length; i++) {
           const edge: LineSegment = {
             start: vertices[i],
