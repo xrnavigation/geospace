@@ -8,6 +8,10 @@ import {
   LineSegment,
   Point,
   Polygon2D,
+  AffineTransform,
+  raySegmentIntersection,
+  rayCircleIntersection,
+  rayPolygonIntersection
 } from "./geometry";
 
 describe('GeometryEngine', () => {
@@ -240,5 +244,109 @@ describe('Polygon with Holes', () => {
   it('detects point inside the hole as outside polygon', () => {
     const engineLocal = new GeometryEngine(euclideanDistance);
     expect(engineLocal.intersects({ x: 5, y: 5 }, donut)).toBe(false);
+  });
+});
+
+describe('AffineTransform', () => {
+  it('translates a point', () => {
+    const transform = new AffineTransform().translate({ x: 5, y: 7 });
+    const p: Point = { x: 1, y: 2 };
+    const p2 = transform.apply(p) as Point;
+    expect(p2.x).toBeCloseTo(6, 10);
+    expect(p2.y).toBeCloseTo(9, 10);
+  });
+
+  it('rotates a point', () => {
+    const transform = new AffineTransform().rotate(Math.PI / 2);
+    const p: Point = { x: 1, y: 0 };
+    const p2 = transform.apply(p) as Point;
+    expect(p2.x).toBeCloseTo(0, 10);
+    expect(p2.y).toBeCloseTo(1, 10);
+  });
+
+  it('scales a point', () => {
+    const transform = new AffineTransform().scale(2);
+    const p: Point = { x: 3, y: 4 };
+    const p2 = transform.apply(p) as Point;
+    expect(p2.x).toBeCloseTo(6, 10);
+    expect(p2.y).toBeCloseTo(8, 10);
+  });
+
+  it('transforms a line segment', () => {
+    const line: LineSegment = { start: { x: 0, y: 0 }, end: { x: 2, y: 0 } };
+    const transform = new AffineTransform().translate({ x: 1, y: 1 });
+    const newLine = transform.apply(line) as { start: Point; end: Point };
+    expect(newLine.start.x).toBeCloseTo(1, 10);
+    expect(newLine.start.y).toBeCloseTo(1, 10);
+    expect(newLine.end.x).toBeCloseTo(3, 10);
+    expect(newLine.end.y).toBeCloseTo(1, 10);
+  });
+
+  it('transforms a circle', () => {
+    const circle: Circle = { center: { x: 0, y: 0 }, radius: 3 };
+    const transform = new AffineTransform().translate({ x: 2, y: 2 });
+    const newCircle = transform.apply(circle) as Circle;
+    expect(newCircle.center.x).toBeCloseTo(2, 10);
+    expect(newCircle.center.y).toBeCloseTo(2, 10);
+    expect(newCircle.radius).toBeCloseTo(3, 10);
+  });
+
+  it('transforms a polygon', () => {
+    const polygon = new Polygon2D([{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 3 }]);
+    const transform = new AffineTransform().scale(2);
+    const newPolygon = transform.apply(polygon) as Polygon2D;
+    expect(newPolygon.exterior[0].x).toBeCloseTo(0, 10);
+    expect(newPolygon.exterior[0].y).toBeCloseTo(0, 10);
+    expect(newPolygon.exterior[1].x).toBeCloseTo(8, 10);
+    expect(newPolygon.exterior[1].y).toBeCloseTo(0, 10);
+    expect(newPolygon.exterior[2].x).toBeCloseTo(8, 10);
+    expect(newPolygon.exterior[2].y).toBeCloseTo(6, 10);
+  });
+});
+
+describe('Ray Intersection', () => {
+  it('finds intersection between ray and line segment', () => {
+    const ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
+    const seg: LineSegment = { start: { x: 5, y: -1 }, end: { x: 5, y: 1 } };
+    const intersection = raySegmentIntersection(ray, seg);
+    expect(intersection).not.toBeNull();
+    if (intersection) {
+      expect(intersection.x).toBeCloseTo(5, 10);
+      expect(intersection.y).toBeCloseTo(0, 10);
+    }
+  });
+
+  it('returns null for ray with no intersection on line segment', () => {
+    const ray = { origin: { x: 0, y: 0 }, direction: { x: 0, y: 1 } };
+    const seg: LineSegment = { start: { x: 5, y: -1 }, end: { x: 5, y: 1 } };
+    const intersection = raySegmentIntersection(ray, seg);
+    expect(intersection).toBeNull();
+  });
+
+  it('finds intersection between ray and circle', () => {
+    const ray = { origin: { x: -10, y: 0 }, direction: { x: 1, y: 0 } };
+    const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
+    const intersection = rayCircleIntersection(ray, circle);
+    expect(intersection).not.toBeNull();
+    if (intersection) {
+      expect(intersection.x).toBeCloseTo(-5, 10);
+      expect(intersection.y).toBeCloseTo(0, 10);
+    }
+  });
+
+  it('finds intersection between ray and polygon', () => {
+    const square = new Polygon2D([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ]);
+    const ray = { origin: { x: -5, y: 5 }, direction: { x: 1, y: 0 } };
+    const intersection = rayPolygonIntersection(ray, square);
+    expect(intersection).not.toBeNull();
+    if (intersection) {
+      expect(intersection.x).toBeCloseTo(0, 10);
+      expect(intersection.y).toBeCloseTo(5, 10);
+    }
   });
 });
