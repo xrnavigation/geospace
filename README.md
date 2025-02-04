@@ -211,6 +211,26 @@ console.log("Unified raycast all (closest):", resAll);
 ```
 ```
 
+## GeoJSON Conversion
+
+The library also provides robust conversion methods to and from GeoJSON via the GeoJSONConverter class.
+These methods allow you to convert geometry objects (such as Point2D, LineSegment2D, Circle2D, and Polygon2D)
+into GeoJSON Features and FeatureCollections, and to reconstruct geometry objects from GeoJSON data.
+You can also integrate GeoJSON conversion with spatial indices like the RTree for enhanced import/export capabilities.
+
+Example usage:
+
+```typescript
+import { GeoJSONConverter, Point2D } from '@xrnavigation/geospace';
+
+const point = new Point2D(1, 2);
+const geoJSONFeature = GeoJSONConverter.toGeoJSON(point);
+console.log("GeoJSON Feature:", geoJSONFeature);
+
+const converted = GeoJSONConverter.fromGeoJSON(geoJSONFeature.geometry);
+console.log("Converted Geometry:", converted);
+```
+
 ## TypeScript Configuration
 
 The library requires TypeScript 4.8+ and these compiler options:
