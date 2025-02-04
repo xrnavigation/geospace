@@ -9,6 +9,7 @@ export default defineConfig({
       formats: ['es', 'umd']
     },
     sourcemap: true,
+    minify: false,
     rollupOptions: {
       external: [],
       output: {

@@ -2,10 +2,16 @@
   "name": "geospace",
   "version": "0.0.1",
   "description": "Geometry Utilities",
-  "main": "index.js",
+  "main": "./dist/geometry.umd.js",
+  "module": "./dist/geometry.es.js",
+  "types": "./dist/geometry.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "vitest run",
-    "build": "vite build",
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc && vite build",
     "preview": "vite preview"
   },
   "keywords": [
