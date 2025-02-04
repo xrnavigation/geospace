@@ -18,10 +18,10 @@ A high-performance 2D geometry library with spatial indexing capabilities. Featu
 ## Quick Start
 
 ```typescript
-import { GeometryEngine, Point2D, Circle2D, distance } from '@internal/geospace';
+import { GeometryEngine, Point2D, Circle2D, euclideanDistance } from '@xrnavigation/geospace';
 
 // Create a geometry engine with Euclidean distance
-const engine = new GeometryEngine(distance);
+const engine = new GeometryEngine(euclideanDistance);
 
 // Create some geometric objects
 const point = new Point2D(0, 0);
@@ -54,7 +54,7 @@ console.log(`Distance from point to circle: ${dist}`);
 The R-tree implementation provides efficient spatial queries:
 
 ```typescript
-import { RTree, SpatialItem } from '@internal/geospace';
+import { RTree, SpatialItem } from '@xrnavigation/geospace';
 
 // Create an R-tree
 const rtree = new RTree<SpatialItem>();
@@ -166,7 +166,7 @@ In addition to direct raycasting functions (raySegmentIntersection, rayCircleInt
 For example, using direct functions:
 
 ```typescript
-import { Ray, raySegmentIntersection, rayCircleIntersection, rayPolygonIntersection } from '@internal/geospace';
+import { Ray, raySegmentIntersection, rayCircleIntersection, rayPolygonIntersection } from '@xrnavigation/geospace';
 
 const ray: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
 
@@ -186,9 +186,9 @@ console.log("Ray-polygon intersection:", interPoly);
 Alternatively, using the unified GeometryEngine methods:
 
 ```typescript
-import { GeometryEngine, Point2D, Circle2D, Polygon2D, LineSegment } from '@internal/geospace';
+import { GeometryEngine, Point2D, Circle2D, Polygon2D, LineSegment, euclideanDistance } from '@xrnavigation/geospace';
 
-const engine = new GeometryEngine((a, b) => Math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2));
+const engine = new GeometryEngine(euclideanDistance);
 
 const rayOrigin = new Point2D(0, 0);
 const rayDirection = { x: 1, y: 0 };
