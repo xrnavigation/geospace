@@ -34,6 +34,18 @@ export interface ConversionResult<T> {
   warnings?: string[];
 }
 
+/**
+ * GeoJSONConverter provides methods for converting between custom geometry objects 
+ * (such as Point2D, LineSegment2D, Circle2D, and Polygon2D) and GeoJSON features.
+ *
+ * Methods:
+ *  - toGeoJSON: Converts a geometry object to a GeoJSON Feature.
+ *  - fromGeoJSON: Converts a GeoJSON Feature back to a geometry object.
+ *  - toFeatureCollection: Aggregates items into a GeoJSON FeatureCollection.
+ *  - enhanceRTree: Enhances an RTree instance with GeoJSON import/export capabilities.
+ *
+ * GeoJSONOptions may be supplied to control conversion behavior (e.g., circleMode and coordinate transformations).
+ */
 export class GeoJSONConverter {
   private static readonly DEFAULT_OPTIONS: GeoJSONOptions = {
     circleMode: "polygon",
@@ -41,6 +53,12 @@ export class GeoJSONConverter {
     validate: true,
   };
 
+  /**
+   * Converts a geometry object (e.g., Point2D, LineSegment2D, Circle2D, Polygon2D) to a GeoJSON Feature.
+   * @param geometry The geometry object to convert.
+   * @param options Optional conversion options.
+   * @returns A ConversionResult containing the GeoJSON Feature and any warnings.
+   */
   static toGeoJSON(
     geometry: any,
     options?: GeoJSONOptions
@@ -110,6 +128,12 @@ export class GeoJSONConverter {
     return { geometry: feature, warnings };
   }
 
+  /**
+   * Converts a GeoJSON Feature to a geometry object.
+   * @param feature A GeoJSON Feature containing geometry data.
+   * @param options Optional conversion options.
+   * @returns A ConversionResult containing the converted geometry and any warnings.
+   */
   static fromGeoJSON(
     feature: Feature,
     options?: GeoJSONOptions
@@ -195,6 +219,12 @@ export class GeoJSONConverter {
     }
   }
 
+  /**
+   * Converts an array of items with id, geometry, metadata, and a bounding box method into a GeoJSON FeatureCollection.
+   * @param items Array of items to convert.
+   * @param options Optional conversion options.
+   * @returns A ConversionResult containing the FeatureCollection and any warnings.
+   */
   static toFeatureCollection(
     items: Array<{
       id: string;
@@ -227,6 +257,11 @@ export class GeoJSONConverter {
     };
   }
 
+  /**
+   * Enhances an RTree instance with methods to load GeoJSON data and export its contents as a GeoJSON FeatureCollection.
+   * @param tree An instance of RTree containing spatial items.
+   * @returns An object with 'loadGeoJSON' and 'toGeoJSON' methods.
+   */
   static enhanceRTree<
     T extends {
       id: string;
