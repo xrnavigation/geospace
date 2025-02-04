@@ -1,27 +1,27 @@
 /**
  * @fileoverview Geospace - A comprehensive 2D geometry library
- * 
+ *
  * Features:
  * - Numerically stable geometric operations using epsilon-based comparisons
  * - Quadratic-split R-tree implementation with bulk-loading capability
  * - Priority-queue based nearest-neighbor search
  * - Memory-efficient cached bounding boxes
  * - Optimized polygon routines
- * 
+ *
  * @version 1.0.0
  * @internal
  */
 
-/** 
+/**
  * Global epsilon for numerical stability in floating-point comparisons.
  * Used to handle rounding errors and near-zero comparisons.
  */
-const EPSILON = 1e-10;
+export const EPSILON = 1e-10;
 
 /**
  * Represents a point in 2D space.
  * All coordinates are immutable after creation.
- * 
+ *
  * @example
  * ```typescript
  * const point: Point = { x: 1, y: 2 };
@@ -37,12 +37,12 @@ export interface Point {
 /**
  * Represents a circle defined by a center point and radius.
  * All properties are immutable after creation.
- * 
+ *
  * @example
  * ```typescript
- * const circle: Circle = { 
- *   center: { x: 0, y: 0 }, 
- *   radius: 5 
+ * const circle: Circle = {
+ *   center: { x: 0, y: 0 },
+ *   radius: 5
  * };
  * ```
  */
@@ -56,7 +56,7 @@ export interface Circle {
 /**
  * Represents a line segment defined by start and end points.
  * All properties are immutable after creation.
- * 
+ *
  * @example
  * ```typescript
  * const segment: LineSegment = {
@@ -76,7 +76,7 @@ export interface LineSegment {
  * Represents a polygon defined by an ordered list of vertices.
  * The vertices should form a closed loop but should not repeat the first vertex.
  * All properties are immutable after creation.
- * 
+ *
  * @example
  * ```typescript
  * const square: Polygon = {
@@ -92,7 +92,7 @@ export interface LineSegment {
 export interface Polygon {
   /** Ordered list of polygon vertices */
   readonly vertices: readonly Point[];
-  /** 
+  /**
    * Gets the bounding box of the polygon.
    * @returns The axis-aligned bounding box containing the polygon
    */
@@ -124,7 +124,7 @@ export interface Bounded {
  * Interface for chainable geometric transformations.
  * Allows composing multiple transformations that can be applied to any geometry type.
  * All transformations are immutable and return a new Transform instance.
- * 
+ *
  * @example
  * ```typescript
  * const transform = new AffineTransform()
@@ -175,25 +175,28 @@ export interface GeometryOperations {
   pointToLineDistance(p: Point, l: LineSegment): number;
   pointToCircleDistance(p: Point, c: Circle): number;
   pointToPolygonDistance(p: Point, poly: Polygon): number;
-  
+
   // Line distances
   lineToLineDistance(a: LineSegment, b: LineSegment): number;
   lineToCircleDistance(l: LineSegment, c: Circle): number;
   lineToPolygonDistance(l: LineSegment, p: Polygon): number;
-  
+
   // Circle distances
   circleToCircleDistance(a: Circle, b: Circle): number;
   circleToPolygonDistance(c: Circle, p: Polygon): number;
-  
+
   // Polygon distances
   polygonToPolygonDistance(a: Polygon, b: Polygon): number;
-  
+
   /** Test if geometries intersect */
   intersects(a: Geometry, b: Geometry): boolean;
-  
+
   /** Test if first geometry fully contains second */
-  contains(container: Circle | Polygon, contained: Point | LineSegment | Circle | Polygon): boolean;
-  
+  contains(
+    container: Circle | Polygon,
+    contained: Point | LineSegment | Circle | Polygon
+  ): boolean;
+
   /** Calculate area of shape */
   area(shape: Circle | Polygon): number;
   /** Calculate perimeter of shape */
@@ -206,7 +209,11 @@ export interface GeometryOperations {
    * @param geometry Geometry to test against
    * @returns Intersection point and distance, or null if no intersection
    */
-  raycast(origin: Point, direction: Point, geometry: Geometry): RaycastResult | null;
+  raycast(
+    origin: Point,
+    direction: Point,
+    geometry: Geometry
+  ): RaycastResult | null;
 
   /**
    * Cast a ray against multiple geometries, finding the closest intersection.
@@ -215,7 +222,11 @@ export interface GeometryOperations {
    * @param geometries Array of geometries to test against
    * @returns Closest intersection result, or null if no intersection
    */
-  raycastAll(origin: Point, direction: Point, geometries: Geometry[]): RaycastResult | null;
+  raycastAll(
+    origin: Point,
+    direction: Point,
+    geometries: Geometry[]
+  ): RaycastResult | null;
 }
 
 export interface RaycastResult {
@@ -269,7 +280,7 @@ export interface SpatialItem extends Bounded {
 /**
  * Concrete implementation of a 2D point.
  * Immutable point with x,y coordinates that can be used in spatial operations.
- * 
+ *
  * @example
  * ```typescript
  * const point = new Point2D(3, 4);
@@ -278,7 +289,7 @@ export interface SpatialItem extends Bounded {
  */
 export class Point2D implements Point, Bounded {
   constructor(public readonly x: number, public readonly y: number) {}
-  
+
   /**
    * Gets the bounding box of the point (which is just the point itself).
    * @returns BoundingBox with minX=maxX=x and minY=maxY=y
@@ -291,7 +302,7 @@ export class Point2D implements Point, Bounded {
 /**
  * Concrete implementation of a 2D circle.
  * Immutable circle defined by center point and radius.
- * 
+ *
  * @example
  * ```typescript
  * const circle = new Circle2D({ x: 0, y: 0 }, 5);
@@ -314,7 +325,7 @@ export class Circle2D implements Circle, Bounded {
       minX: this.center.x - this.radius,
       minY: this.center.y - this.radius,
       maxX: this.center.x + this.radius,
-      maxY: this.center.y + this.radius
+      maxY: this.center.y + this.radius,
     };
   }
 }
@@ -322,7 +333,7 @@ export class Circle2D implements Circle, Bounded {
 /**
  * Concrete implementation of a 2D line segment.
  * Immutable line segment defined by start and end points.
- * 
+ *
  * @example
  * ```typescript
  * const line = new LineSegment2D(
@@ -344,7 +355,7 @@ export class LineSegment2D implements LineSegment, Bounded {
       minX: Math.min(this.start.x, this.end.x),
       minY: Math.min(this.start.y, this.end.y),
       maxX: Math.max(this.start.x, this.end.x),
-      maxY: Math.max(this.start.y, this.end.y)
+      maxY: Math.max(this.start.y, this.end.y),
     };
   }
 }
@@ -352,7 +363,7 @@ export class LineSegment2D implements LineSegment, Bounded {
 /**
  * Concrete implementation of a 2D polygon.
  * Immutable polygon defined by an ordered list of vertices.
- * 
+ *
  * @example
  * ```typescript
  * const square = new Polygon2D([
@@ -390,12 +401,12 @@ export class Polygon2D implements Polygon, Bounded {
 
 /**
  * Implements a chainable affine transform using a 3x3 transformation matrix.
- * 
+ *
  * An affine transformation preserves:
  * - Collinearity (points on a line remain on a line)
  * - Parallelism (parallel lines remain parallel)
  * - Ratios of distances along a line
- * 
+ *
  * The transform is represented internally by a 3×3 matrix:
  * ```
  *    [ a  c  e ]
@@ -403,18 +414,18 @@ export class Polygon2D implements Polygon, Bounded {
  *    [ 0  0  1 ]
  * ```
  * where [a,b,c,d] handle rotation/scaling and [e,f] handle translation.
- * 
+ *
  * A point (x,y) is transformed to (x',y') by:
  * ```
  *    x' = a*x + c*y + e
  *    y' = b*x + d*y + f
  * ```
- * 
+ *
  * Common transformations:
  * - Translation: [1 0 tx] [0 1 ty] [0 0 1]
  * - Rotation: [cos θ  -sin θ  0] [sin θ   cos θ  0] [0 0 1]
  * - Scale: [sx 0 0] [0 sy 0] [0 0 1]
- * 
+ *
  * @example
  * ```typescript
  * const transform = new AffineTransform()
@@ -434,14 +445,19 @@ export class AffineTransform implements Transform {
     }
   }
   translate(vector: Point): Transform {
-    const tx = vector.x, ty = vector.y;
+    const tx = vector.x,
+      ty = vector.y;
     const t = [1, 0, 0, 1, tx, ty];
     this.m = AffineTransform.multiply(this.m, t);
     return this;
   }
   rotate(angleRadians: number, center?: Point): Transform {
-    let cx = 0, cy = 0;
-    if (center) { cx = center.x; cy = center.y; }
+    let cx = 0,
+      cy = 0;
+    if (center) {
+      cx = center.x;
+      cy = center.y;
+    }
     this.translate({ x: -cx, y: -cy });
     const cos = Math.cos(angleRadians);
     const sin = Math.sin(angleRadians);
@@ -451,8 +467,12 @@ export class AffineTransform implements Transform {
     return this;
   }
   scale(factor: number, center?: Point): Transform {
-    let cx = 0, cy = 0;
-    if (center) { cx = center.x; cy = center.y; }
+    let cx = 0,
+      cy = 0;
+    if (center) {
+      cx = center.x;
+      cy = center.y;
+    }
     this.translate({ x: -cx, y: -cy });
     const s = [factor, 0, 0, factor, 0, 0];
     this.m = AffineTransform.multiply(this.m, s);
@@ -470,19 +490,30 @@ export class AffineTransform implements Transform {
     } else if (isCircle(geometry)) {
       return new Circle2D(
         transformPoint(geometry.center, this.m),
-        geometry.radius * Math.sqrt(Math.abs(this.m[0] * this.m[3] - this.m[1] * this.m[2]))
+        geometry.radius *
+          Math.sqrt(Math.abs(this.m[0] * this.m[3] - this.m[1] * this.m[2]))
       ) as unknown as T;
     } else if (isPolygon(geometry)) {
       return new Polygon2D(
-        geometry.vertices.map(v => transformPoint(v, this.m))
+        geometry.vertices.map((v) => transformPoint(v, this.m))
       ) as T;
     } else {
       throw new Error("Unsupported geometry type");
     }
   }
   private static multiply(m1: number[], m2: number[]): number[] {
-    const a1 = m1[0], b1 = m1[1], c1 = m1[2], d1 = m1[3], e1 = m1[4], f1 = m1[5];
-    const a2 = m2[0], b2 = m2[1], c2 = m2[2], d2 = m2[3], e2 = m2[4], f2 = m2[5];
+    const a1 = m1[0],
+      b1 = m1[1],
+      c1 = m1[2],
+      d1 = m1[3],
+      e1 = m1[4],
+      f1 = m1[5];
+    const a2 = m2[0],
+      b2 = m2[1],
+      c2 = m2[2],
+      d2 = m2[3],
+      e2 = m2[4],
+      f2 = m2[5];
     const a = a1 * a2 + c1 * b2;
     const b = b1 * a2 + d1 * b2;
     const c = a1 * c2 + c1 * d2;
@@ -494,24 +525,31 @@ export class AffineTransform implements Transform {
 }
 
 function transformPoint(p: Point, m: number[]): Point {
-  return { x: m[0] * p.x + m[2] * p.y + m[4], y: m[1] * p.x + m[3] * p.y + m[5] };
+  return {
+    x: m[0] * p.x + m[2] * p.y + m[4],
+    y: m[1] * p.x + m[3] * p.y + m[5],
+  };
 }
 
 // ==========================
 // Type guards for geometry types
 // ==========================
 function isPoint(geom: Geometry): geom is Point {
-  return (geom as Point).x !== undefined &&
-         (geom as Point).y !== undefined &&
-         (geom as any).start === undefined &&
-         (geom as any).center === undefined &&
-         (geom as any).vertices === undefined;
+  return (
+    (geom as Point).x !== undefined &&
+    (geom as Point).y !== undefined &&
+    (geom as any).start === undefined &&
+    (geom as any).center === undefined &&
+    (geom as any).vertices === undefined
+  );
 }
 function isLineSegment(geom: Geometry): geom is LineSegment {
   return (geom as any).start !== undefined && (geom as any).end !== undefined;
 }
 function isCircle(geom: Geometry): geom is Circle {
-  return (geom as any).center !== undefined && (geom as any).radius !== undefined;
+  return (
+    (geom as any).center !== undefined && (geom as any).radius !== undefined
+  );
 }
 function isPolygon(geom: Geometry): geom is Polygon {
   return (geom as any).vertices !== undefined;
@@ -580,7 +618,10 @@ export class GeometryEngine implements GeometryOperations {
     minDist = Math.min(d1, d2);
     const vertices = poly.vertices;
     for (let i = 0; i < vertices.length; i++) {
-      const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
+      const edge: LineSegment = {
+        start: vertices[i],
+        end: vertices[(i + 1) % vertices.length],
+      };
       const d = this.lineToLineDistance(l, edge);
       if (d < minDist) minDist = d;
     }
@@ -596,7 +637,10 @@ export class GeometryEngine implements GeometryOperations {
     let minDist = Infinity;
     const vertices = poly.vertices;
     for (let i = 0; i < vertices.length; i++) {
-      const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
+      const edge: LineSegment = {
+        start: vertices[i],
+        end: vertices[(i + 1) % vertices.length],
+      };
       const d = this.pointToLineDistance(c.center, edge) - c.radius;
       if (d < minDist) minDist = d;
     }
@@ -604,25 +648,25 @@ export class GeometryEngine implements GeometryOperations {
   }
   polygonToPolygonDistance(a: Polygon, b: Polygon): number {
     if (this.intersects(a, b)) return 0;
-    
+
     let minDist = Infinity;
-    
+
     // Check all edge pairs
     for (let i = 0; i < a.vertices.length; i++) {
       const a1 = a.vertices[i];
       const a2 = a.vertices[(i + 1) % a.vertices.length];
       const edgeA: LineSegment = { start: a1, end: a2 };
-      
+
       for (let j = 0; j < b.vertices.length; j++) {
         const b1 = b.vertices[j];
         const b2 = b.vertices[(j + 1) % b.vertices.length];
         const edgeB: LineSegment = { start: b1, end: b2 };
-        
+
         const d = this.lineToLineDistance(edgeA, edgeB);
         minDist = Math.min(minDist, d);
       }
     }
-    
+
     return minDist;
   }
   intersects(a: Geometry, b: Geometry): boolean {
@@ -637,14 +681,14 @@ export class GeometryEngine implements GeometryOperations {
         minX: Math.min(a.start.x, a.end.x),
         minY: Math.min(a.start.y, a.end.y),
         maxX: Math.max(a.start.x, a.end.x),
-        maxY: Math.max(a.start.y, a.end.y)
+        maxY: Math.max(a.start.y, a.end.y),
       };
     } else if (isCircle(a)) {
       bboxA = {
         minX: a.center.x - a.radius,
         minY: a.center.y - a.radius,
         maxX: a.center.x + a.radius,
-        maxY: a.center.y + a.radius
+        maxY: a.center.y + a.radius,
       };
     } else if (isPolygon(a)) {
       bboxA = a.getBoundingBox();
@@ -659,14 +703,14 @@ export class GeometryEngine implements GeometryOperations {
         minX: Math.min(b.start.x, b.end.x),
         minY: Math.min(b.start.y, b.end.y),
         maxX: Math.max(b.start.x, b.end.x),
-        maxY: Math.max(b.start.y, b.end.y)
+        maxY: Math.max(b.start.y, b.end.y),
       };
     } else if (isCircle(b)) {
       bboxB = {
         minX: b.center.x - b.radius,
         minY: b.center.y - b.radius,
         maxX: b.center.x + b.radius,
-        maxY: b.center.y + b.radius
+        maxY: b.center.y + b.radius,
       };
     } else if (isPolygon(b)) {
       bboxB = b.getBoundingBox();
@@ -681,44 +725,63 @@ export class GeometryEngine implements GeometryOperations {
     if (isPoint(a)) {
       if (isPoint(b)) return this.distanceFunc(a, b) < EPSILON;
       if (isLineSegment(b)) return pointOnSegment(a, b);
-      if (isCircle(b)) return this.distanceFunc(a, b.center) <= b.radius + EPSILON;
+      if (isCircle(b))
+        return this.distanceFunc(a, b.center) <= b.radius + EPSILON;
       if (isPolygon(b)) return pointInPolygon(a, b);
     }
-    
+
     if (isLineSegment(a)) {
       if (isPoint(b)) return pointOnSegment(b, a);
       if (isLineSegment(b)) return segmentsIntersect(a, b);
-      if (isCircle(b)) return this.pointToCircleDistance(nearestPointOnSegment(b.center, a), b) < EPSILON;
+      if (isCircle(b))
+        return (
+          this.pointToCircleDistance(nearestPointOnSegment(b.center, a), b) <
+          EPSILON
+        );
       if (isPolygon(b)) {
         if (pointInPolygon(a.start, b) || pointInPolygon(a.end, b)) return true;
         for (let i = 0; i < b.vertices.length; i++) {
-          const edge: LineSegment = { 
-            start: b.vertices[i], 
-            end: b.vertices[(i + 1) % b.vertices.length] 
+          const edge: LineSegment = {
+            start: b.vertices[i],
+            end: b.vertices[(i + 1) % b.vertices.length],
           };
           if (segmentsIntersect(a, edge)) return true;
         }
         return false;
       }
     }
-    
+
     if (isCircle(a)) {
-      if (isPoint(b)) return this.distanceFunc(b, a.center) <= a.radius + EPSILON;
-      if (isLineSegment(b)) return this.pointToCircleDistance(nearestPointOnSegment(a.center, b), a) < EPSILON;
-      if (isCircle(b)) return this.distanceFunc(a.center, b.center) <= (a.radius + b.radius) + EPSILON;
+      if (isPoint(b))
+        return this.distanceFunc(b, a.center) <= a.radius + EPSILON;
+      if (isLineSegment(b))
+        return (
+          this.pointToCircleDistance(nearestPointOnSegment(a.center, b), a) <
+          EPSILON
+        );
+      if (isCircle(b))
+        return (
+          this.distanceFunc(a.center, b.center) <= a.radius + b.radius + EPSILON
+        );
       if (isPolygon(b)) {
         if (pointInPolygon(a.center, b)) return true;
         for (let i = 0; i < b.vertices.length; i++) {
-          const edge: LineSegment = { 
-            start: b.vertices[i], 
-            end: b.vertices[(i + 1) % b.vertices.length] 
+          const edge: LineSegment = {
+            start: b.vertices[i],
+            end: b.vertices[(i + 1) % b.vertices.length],
           };
-          if (this.pointToCircleDistance(nearestPointOnSegment(a.center, edge), a) < EPSILON) return true;
+          if (
+            this.pointToCircleDistance(
+              nearestPointOnSegment(a.center, edge),
+              a
+            ) < EPSILON
+          )
+            return true;
         }
         return false;
       }
     }
-    
+
     if (isPolygon(a)) {
       if (isPoint(b)) return pointInPolygon(b, a);
       if (isLineSegment(b)) return this.intersects(b, a);
@@ -733,14 +796,14 @@ export class GeometryEngine implements GeometryOperations {
         }
         // Check if any edges intersect
         for (let i = 0; i < a.vertices.length; i++) {
-          const edgeA: LineSegment = { 
-            start: a.vertices[i], 
-            end: a.vertices[(i + 1) % a.vertices.length] 
+          const edgeA: LineSegment = {
+            start: a.vertices[i],
+            end: a.vertices[(i + 1) % a.vertices.length],
           };
           for (let j = 0; j < b.vertices.length; j++) {
-            const edgeB: LineSegment = { 
-              start: b.vertices[j], 
-              end: b.vertices[(j + 1) % b.vertices.length] 
+            const edgeB: LineSegment = {
+              start: b.vertices[j],
+              end: b.vertices[(j + 1) % b.vertices.length],
             };
             if (segmentsIntersect(edgeA, edgeB)) return true;
           }
@@ -748,33 +811,60 @@ export class GeometryEngine implements GeometryOperations {
         return false;
       }
     }
-    
+
     return false;
   }
-  contains(container: Circle | Polygon, contained: Point | LineSegment | Circle | Polygon): boolean {
+  contains(
+    container: Circle | Polygon,
+    contained: Point | LineSegment | Circle | Polygon
+  ): boolean {
     if (isCircle(container)) {
       if (isPoint(contained)) {
-        return this.distanceFunc(container.center, contained) <= container.radius - EPSILON;
+        return (
+          this.distanceFunc(container.center, contained) <=
+          container.radius - EPSILON
+        );
       } else if (isLineSegment(contained)) {
-        return this.contains(container, contained.start) && this.contains(container, contained.end);
+        return (
+          this.contains(container, contained.start) &&
+          this.contains(container, contained.end)
+        );
       } else if (isCircle(contained)) {
-        return this.distanceFunc(container.center, contained.center) + contained.radius <= container.radius - EPSILON;
+        return (
+          this.distanceFunc(container.center, contained.center) +
+            contained.radius <=
+          container.radius - EPSILON
+        );
       } else if (isPolygon(contained)) {
-        return contained.vertices.every(v => this.contains(container, v));
+        return contained.vertices.every((v) => this.contains(container, v));
       }
     } else if (isPolygon(container)) {
       if (isPoint(contained)) {
         return pointInPolygon(contained, container);
       } else if (isLineSegment(contained)) {
-        if (!(pointInPolygon(contained.start, container) || onPolygonBoundary(contained.start, container)) ||
-            !(pointInPolygon(contained.end, container) || onPolygonBoundary(contained.end, container))) return false;
+        if (
+          !(
+            pointInPolygon(contained.start, container) ||
+            onPolygonBoundary(contained.start, container)
+          ) ||
+          !(
+            pointInPolygon(contained.end, container) ||
+            onPolygonBoundary(contained.end, container)
+          )
+        )
+          return false;
         const vertices = container.vertices;
         for (let i = 0; i < vertices.length; i++) {
-          const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
+          const edge: LineSegment = {
+            start: vertices[i],
+            end: vertices[(i + 1) % vertices.length],
+          };
           if (segmentsIntersect(contained, edge)) {
             if (
-              !pointsEqual(contained.start, edge.start) && !pointsEqual(contained.start, edge.end) &&
-              !pointsEqual(contained.end, edge.start) && !pointsEqual(contained.end, edge.end)
+              !pointsEqual(contained.start, edge.start) &&
+              !pointsEqual(contained.start, edge.end) &&
+              !pointsEqual(contained.end, edge.start) &&
+              !pointsEqual(contained.end, edge.end)
             ) {
               return false;
             }
@@ -785,13 +875,15 @@ export class GeometryEngine implements GeometryOperations {
         const numSamples = 16;
         for (let i = 0; i < numSamples; i++) {
           const angle = (2 * Math.PI * i) / numSamples;
-          const p: Point = { x: contained.center.x + contained.radius * Math.cos(angle),
-                             y: contained.center.y + contained.radius * Math.sin(angle) };
+          const p: Point = {
+            x: contained.center.x + contained.radius * Math.cos(angle),
+            y: contained.center.y + contained.radius * Math.sin(angle),
+          };
           if (!pointInPolygon(p, container)) return false;
         }
         return true;
       } else if (isPolygon(contained)) {
-        return contained.vertices.every(v => pointInPolygon(v, container));
+        return contained.vertices.every((v) => pointInPolygon(v, container));
       }
     }
     return false;
@@ -839,17 +931,26 @@ export class GeometryEngine implements GeometryOperations {
       if ("getBoundingBox" in (geometry as any)) {
         bbox = (geometry as Bounded).getBoundingBox();
       } else if (isPoint(geometry)) {
-        bbox = { minX: geometry.x, minY: geometry.y, maxX: geometry.x, maxY: geometry.y };
+        bbox = {
+          minX: geometry.x,
+          minY: geometry.y,
+          maxX: geometry.x,
+          maxY: geometry.y,
+        };
       } else if (isLineSegment(geometry)) {
         bbox = {
           minX: Math.min(geometry.start.x, geometry.end.x),
           minY: Math.min(geometry.start.y, geometry.end.y),
           maxX: Math.max(geometry.start.x, geometry.end.x),
-          maxY: Math.max(geometry.start.y, geometry.end.y)
+          maxY: Math.max(geometry.start.y, geometry.end.y),
         };
       } else if (isCircle(geometry)) {
-        bbox = { minX: geometry.center.x - geometry.radius, minY: geometry.center.y - geometry.radius,
-                 maxX: geometry.center.x + geometry.radius, maxY: geometry.center.y + geometry.radius };
+        bbox = {
+          minX: geometry.center.x - geometry.radius,
+          minY: geometry.center.y - geometry.radius,
+          maxX: geometry.center.x + geometry.radius,
+          maxY: geometry.center.y + geometry.radius,
+        };
       } else if (isPolygon(geometry)) {
         bbox = computePolygonBBox(geometry);
       } else {
@@ -860,7 +961,11 @@ export class GeometryEngine implements GeometryOperations {
     return [];
   }
 
-  raycast(origin: Point, direction: Point, geometry: Geometry): RaycastResult | null {
+  raycast(
+    origin: Point,
+    direction: Point,
+    geometry: Geometry
+  ): RaycastResult | null {
     const ray: Ray = { origin, direction };
     let intersection: Point | null = null;
     if (isLineSegment(geometry)) {
@@ -869,13 +974,16 @@ export class GeometryEngine implements GeometryOperations {
       intersection = rayCircleIntersection(ray, geometry);
     } else if (isPolygon(geometry)) {
       intersection = rayPolygonIntersection(ray, geometry);
-      // Fallback: if no intersection found and the ray is heading right, 
+      // Fallback: if no intersection found and the ray is heading right,
       // compute intersection with the polygon’s left boundary using its bounding box.
       if (intersection === null && direction.x > EPSILON) {
         const bbox = geometry.getBoundingBox();
         const t = (bbox.minX - origin.x) / direction.x;
         if (t >= 0) {
-          intersection = { x: origin.x + t * direction.x, y: origin.y + t * direction.y };
+          intersection = {
+            x: origin.x + t * direction.x,
+            y: origin.y + t * direction.y,
+          };
         }
       }
     }
@@ -886,7 +994,11 @@ export class GeometryEngine implements GeometryOperations {
     return null;
   }
 
-  raycastAll(origin: Point, direction: Point, geometries: Geometry[]): RaycastResult | null {
+  raycastAll(
+    origin: Point,
+    direction: Point,
+    geometries: Geometry[]
+  ): RaycastResult | null {
     let best: RaycastResult | null = null;
     for (const geom of geometries) {
       const res = this.raycast(origin, direction, geom);
@@ -906,7 +1018,10 @@ export class GeometryEngine implements GeometryOperations {
  * Compute bounding box of a polygon from its vertices.
  */
 function computePolygonBBox(poly: Polygon): BoundingBox {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (const v of poly.vertices) {
     if (v.x < minX) minX = v.x;
     if (v.y < minY) minY = v.y;
@@ -922,17 +1037,24 @@ function computePolygonBBox(poly: Polygon): BoundingBox {
 function pointInPolygon(p: Point, poly: Polygon): boolean {
   // Quick bounding box check.
   const bbox = computePolygonBBox(poly);
-  if (p.x < bbox.minX - EPSILON || p.x > bbox.maxX + EPSILON ||
-      p.y < bbox.minY - EPSILON || p.y > bbox.maxY + EPSILON) {
+  if (
+    p.x < bbox.minX - EPSILON ||
+    p.x > bbox.maxX + EPSILON ||
+    p.y < bbox.minY - EPSILON ||
+    p.y > bbox.maxY + EPSILON
+  ) {
     return false;
   }
   let inside = false;
   const vertices = poly.vertices;
   for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
-    const xi = vertices[i].x, yi = vertices[i].y;
-    const xj = vertices[j].x, yj = vertices[j].y;
-    const intersect = ((yi > p.y) !== (yj > p.y)) &&
-      (p.x < ((xj - xi) * (p.y - yi)) / ((yj - yi) + EPSILON) + xi);
+    const xi = vertices[i].x,
+      yi = vertices[i].y;
+    const xj = vertices[j].x,
+      yj = vertices[j].y;
+    const intersect =
+      yi > p.y !== yj > p.y &&
+      p.x < ((xj - xi) * (p.y - yi)) / (yj - yi + EPSILON) + xi;
     if (intersect) inside = !inside;
   }
   return inside;
@@ -940,7 +1062,10 @@ function pointInPolygon(p: Point, poly: Polygon): boolean {
 function onPolygonBoundary(p: Point, poly: Polygon): boolean {
   const vertices = poly.vertices;
   for (let i = 0; i < vertices.length; i++) {
-    const edge: LineSegment = { start: vertices[i], end: vertices[(i + 1) % vertices.length] };
+    const edge: LineSegment = {
+      start: vertices[i],
+      end: vertices[(i + 1) % vertices.length],
+    };
     if (pointOnSegment(p, edge)) return true;
   }
   return false;
@@ -950,15 +1075,20 @@ function onPolygonBoundary(p: Point, poly: Polygon): boolean {
  * Check if two segments intersect (using EPSILON for near–zero comparisons).
  */
 function segmentsIntersect(a: LineSegment, b: LineSegment): boolean {
-  const det = (a.end.x - a.start.x) * (b.end.y - b.start.y) -
-              (a.end.y - a.start.y) * (b.end.x - b.start.x);
+  const det =
+    (a.end.x - a.start.x) * (b.end.y - b.start.y) -
+    (a.end.y - a.start.y) * (b.end.x - b.start.x);
   if (Math.abs(det) < EPSILON) {
     return collinearOverlap(a, b);
   }
-  const t = ((b.start.x - a.start.x) * (b.end.y - b.start.y) -
-             (b.start.y - a.start.y) * (b.end.x - b.start.x)) / det;
-  const u = ((b.start.x - a.start.x) * (a.end.y - a.start.y) -
-             (b.start.y - a.start.y) * (a.end.x - a.start.x)) / det;
+  const t =
+    ((b.start.x - a.start.x) * (b.end.y - b.start.y) -
+      (b.start.y - a.start.y) * (b.end.x - b.start.x)) /
+    det;
+  const u =
+    ((b.start.x - a.start.x) * (a.end.y - a.start.y) -
+      (b.start.y - a.start.y) * (a.end.x - a.start.x)) /
+    det;
   return t >= -EPSILON && t <= 1 + EPSILON && u >= -EPSILON && u <= 1 + EPSILON;
 }
 
@@ -986,9 +1116,9 @@ function collinear(p: Point, q: Point, r: Point): boolean {
  * Check if point p lies on the segment.
  */
 function pointOnSegment(p: Point, seg: LineSegment): boolean {
-  const d1 = distance(p, seg.start);
-  const d2 = distance(p, seg.end);
-  const dSeg = distance(seg.start, seg.end);
+  const d1 = euclideanDistance(p, seg.start);
+  const d2 = euclideanDistance(p, seg.end);
+  const dSeg = euclideanDistance(seg.start, seg.end);
   return Math.abs(d1 + d2 - dSeg) < EPSILON;
 }
 
@@ -1017,7 +1147,7 @@ function nearestPointOnSegment(p: Point, seg: LineSegment): Point {
 /**
  * Euclidean distance between two points.
  */
-function distance(a: Point, b: Point): number {
+export function euclideanDistance(a: Point, b: Point): number {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
   return Math.sqrt(dx * dx + dy * dy);
@@ -1027,15 +1157,21 @@ function distance(a: Point, b: Point): number {
  * Check if two bounding boxes intersect.
  */
 function bboxIntersects(a: BoundingBox, b: BoundingBox): boolean {
-  return a.minX <= b.maxX + EPSILON && a.maxX >= b.minX - EPSILON &&
-         a.minY <= b.maxY + EPSILON && a.maxY >= b.minY - EPSILON;
+  return (
+    a.minX <= b.maxX + EPSILON &&
+    a.maxX >= b.minX - EPSILON &&
+    a.minY <= b.maxY + EPSILON &&
+    a.maxY >= b.minY - EPSILON
+  );
 }
 
 /**
  * Compute area of a bounding box.
  */
 function bboxArea(bbox: BoundingBox): number {
-  return Math.max(0, bbox.maxX - bbox.minX) * Math.max(0, bbox.maxY - bbox.minY);
+  return (
+    Math.max(0, bbox.maxX - bbox.minX) * Math.max(0, bbox.maxY - bbox.minY)
+  );
 }
 
 /**
@@ -1046,7 +1182,7 @@ function unionBBox(a: BoundingBox, b: BoundingBox): BoundingBox {
     minX: Math.min(a.minX, b.minX),
     minY: Math.min(a.minY, b.minY),
     maxX: Math.max(a.maxX, b.maxX),
-    maxY: Math.max(a.maxY, b.maxY)
+    maxY: Math.max(a.maxY, b.maxY),
   };
 }
 
@@ -1104,8 +1240,11 @@ class PriorityQueue<T> {
         }
       }
       if (child2N < length) {
-        if ((swap === null && this.items[child2N].priority < element.priority) ||
-            (swap !== null && this.items[child2N].priority < this.items[child1N].priority)) {
+        if (
+          (swap === null && this.items[child2N].priority < element.priority) ||
+          (swap !== null &&
+            this.items[child2N].priority < this.items[child1N].priority)
+        ) {
           swap = child2N;
         }
       }
@@ -1170,7 +1309,10 @@ function getBBoxCenter(bbox: BoundingBox): Point {
 
 /** Helper: compute the union of an array of entries’ bounding boxes */
 function calcEntriesBBox<T extends Bounded>(entries: Entry<T>[]): BoundingBox {
-  return entries.reduce((acc, entry) => unionBBox(acc, entry.bbox), entries[0].bbox);
+  return entries.reduce(
+    (acc, entry) => unionBBox(acc, entry.bbox),
+    entries[0].bbox
+  );
 }
 
 /** R-tree spatial index implementation */
@@ -1184,7 +1326,8 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
     this.root = new Node<T>(true);
   }
   insert(item: T): void {
-    const bbox = (item as any).geometry?.getBoundingBox() || item.getBoundingBox();
+    const bbox =
+      (item as any).geometry?.getBoundingBox() || item.getBoundingBox();
     const entry: Entry<T> = { bbox, item };
     this._insert(entry, this.root);
   }
@@ -1247,11 +1390,15 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
   }
   private quadraticSplit(entries: Entry<T>[]): [Entry<T>[], Entry<T>[]] {
     let highestWaste = -Infinity;
-    let seed1Index = 0, seed2Index = 0;
+    let seed1Index = 0,
+      seed2Index = 0;
     for (let i = 0; i < entries.length - 1; i++) {
       for (let j = i + 1; j < entries.length; j++) {
         const union = unionBBox(entries[i].bbox, entries[j].bbox);
-        const d = bboxArea(union) - bboxArea(entries[i].bbox) - bboxArea(entries[j].bbox);
+        const d =
+          bboxArea(union) -
+          bboxArea(entries[i].bbox) -
+          bboxArea(entries[j].bbox);
         if (d > highestWaste) {
           highestWaste = d;
           seed1Index = i;
@@ -1261,7 +1408,9 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
     }
     const group1: Entry<T>[] = [entries[seed1Index]];
     const group2: Entry<T>[] = [entries[seed2Index]];
-    const remaining = entries.filter((_, i) => i !== seed1Index && i !== seed2Index);
+    const remaining = entries.filter(
+      (_, i) => i !== seed1Index && i !== seed2Index
+    );
     while (remaining.length) {
       if (group1.length + remaining.length === this.minEntries) {
         group1.push(...remaining);
@@ -1297,11 +1446,11 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
     return [group1, group2];
   }
   remove(item: T): boolean {
-    const path: { node: Node<T>, entry: Entry<T> }[] = [];
+    const path: { node: Node<T>; entry: Entry<T> }[] = [];
     const found = this.findItem(this.root, item, path);
     if (!found) return false;
     const leafNode = path[path.length - 1].node;
-    const entryIndex = leafNode.entries.findIndex(e => e.item === item);
+    const entryIndex = leafNode.entries.findIndex((e) => e.item === item);
     if (entryIndex >= 0) {
       leafNode.entries.splice(entryIndex, 1);
       leafNode.invalidateBBox();
@@ -1314,7 +1463,11 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
     }
     return false;
   }
-  private findItem(node: Node<T>, item: T, path: { node: Node<T>, entry: Entry<T> }[]): boolean {
+  private findItem(
+    node: Node<T>,
+    item: T,
+    path: { node: Node<T>; entry: Entry<T> }[]
+  ): boolean {
     if (node.leaf) {
       for (const entry of node.entries) {
         if (entry.item === item) {
@@ -1354,7 +1507,9 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
         n = parent;
       } else {
         if (n.parent) {
-          const parentEntry = n.parent.entries.find((e: Entry<T>) => e.child === n);
+          const parentEntry = n.parent.entries.find(
+            (e: Entry<T>) => e.child === n
+          );
           if (parentEntry) {
             parentEntry.bbox = n.bbox;
           }
@@ -1395,11 +1550,20 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
    */
   nearest(point: Point, k: number): T[] {
     const result: T[] = [];
-    type PQEntry = { type: "node", node: Node<T>, priority: number } | { type: "item", item: T, bbox: BoundingBox, priority: number };
+    type PQEntry =
+      | { type: "node"; node: Node<T>; priority: number }
+      | { type: "item"; item: T; bbox: BoundingBox; priority: number };
     const pq = new PriorityQueue<PQEntry>();
 
     // Push the root node.
-    pq.push({ type: "node", node: this.root, priority: pointToBBoxDistance(point, this.root.bbox) }, pointToBBoxDistance(point, this.root.bbox));
+    pq.push(
+      {
+        type: "node",
+        node: this.root,
+        priority: pointToBBoxDistance(point, this.root.bbox),
+      },
+      pointToBBoxDistance(point, this.root.bbox)
+    );
 
     while (pq.size() && result.length < k) {
       const entry = pq.pop()!;
@@ -1410,7 +1574,15 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
           if (node.leaf) {
             // For leaf nodes, push as item.
             if (childEntry.item) {
-              pq.push({ type: "item", item: childEntry.item, bbox: childEntry.bbox, priority: d }, d);
+              pq.push(
+                {
+                  type: "item",
+                  item: childEntry.item,
+                  bbox: childEntry.bbox,
+                  priority: d,
+                },
+                d
+              );
             }
           } else if (childEntry.child) {
             pq.push({ type: "node", node: childEntry.child, priority: d }, d);
@@ -1434,7 +1606,10 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
       return;
     }
     const M = this.maxEntries;
-    let entries: Entry<T>[] = items.map(item => ({ bbox: (item as any).geometry?.getBoundingBox() || item.getBoundingBox(), item }));
+    let entries: Entry<T>[] = items.map((item) => ({
+      bbox: (item as any).geometry?.getBoundingBox() || item.getBoundingBox(),
+      item,
+    }));
     // Determine number of slices S = ceil(sqrt(n / M))
     const S = Math.ceil(Math.sqrt(entries.length / M));
     entries.sort((a, b) => a.bbox.minX - b.bbox.minX);
@@ -1469,7 +1644,7 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
         for (let j = 0; j < numGroups; j++) {
           const group = sliceNodes.slice(j * M, (j + 1) * M);
           const parent = new Node<T>(false);
-          parent.entries = group.map(child => {
+          parent.entries = group.map((child) => {
             child.parent = parent;
             return { bbox: child.bbox, child: child };
           });
@@ -1488,7 +1663,8 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
  * Compute minimum distance from a point to a bounding box.
  */
 function pointToBBoxDistance(p: Point, bbox: BoundingBox): number {
-  let dx = 0, dy = 0;
+  let dx = 0,
+    dy = 0;
   if (p.x < bbox.minX) dx = bbox.minX - p.x;
   else if (p.x > bbox.maxX) dx = p.x - bbox.maxX;
   if (p.y < bbox.minY) dy = bbox.minY - p.y;
@@ -1503,13 +1679,20 @@ function pointToBBoxDistance(p: Point, bbox: BoundingBox): number {
  * @param seg The line segment to test for intersection.
  * @returns The intersection point as a Point if it exists (and lies in the forward direction of the ray and on the segment), otherwise returns null.
  */
-export function raySegmentIntersection(ray: Ray, seg: LineSegment): Point | null {
+export function raySegmentIntersection(
+  ray: Ray,
+  seg: LineSegment
+): Point | null {
   const { origin, direction } = ray;
   const { start, end } = seg;
-  const r_px = origin.x, r_py = origin.y;
-  const r_dx = direction.x, r_dy = direction.y;
-  const s_px = start.x, s_py = start.y;
-  const s_dx = end.x - start.x, s_dy = end.y - start.y;
+  const r_px = origin.x,
+    r_py = origin.y;
+  const r_dx = direction.x,
+    r_dy = direction.y;
+  const s_px = start.x,
+    s_py = start.y;
+  const s_dx = end.x - start.x,
+    s_dy = end.y - start.y;
   const denominator = r_dx * s_dy - r_dy * s_dx;
   if (Math.abs(denominator) < EPSILON) {
     return null;
@@ -1532,9 +1715,12 @@ export function raySegmentIntersection(ray: Ray, seg: LineSegment): Point | null
  */
 export function rayCircleIntersection(ray: Ray, circle: Circle): Point | null {
   const { origin, direction } = ray;
-  const ox = origin.x, oy = origin.y;
-  const dx = direction.x, dy = direction.y;
-  const cx = circle.center.x, cy = circle.center.y;
+  const ox = origin.x,
+    oy = origin.y;
+  const dx = direction.x,
+    dy = direction.y;
+  const cx = circle.center.x,
+    cy = circle.center.y;
   const r = circle.radius;
   const a = dx * dx + dy * dy;
   const b = 2 * (dx * (ox - cx) + dy * (oy - cy));
@@ -1573,7 +1759,9 @@ export function rayPolygonIntersection(ray: Ray, poly: Polygon): Point | null {
     const b = poly.vertices[(i + 1) % poly.vertices.length];
     const inter = raySegmentIntersection(ray, { start: a, end: b });
     if (inter) {
-      const t = Math.sqrt((inter.x - ray.origin.x) ** 2 + (inter.y - ray.origin.y) ** 2);
+      const t = Math.sqrt(
+        (inter.x - ray.origin.x) ** 2 + (inter.y - ray.origin.y) ** 2
+      );
       if (t < closestT) {
         closestT = t;
         closest = inter;
@@ -1582,94 +1770,3 @@ export function rayPolygonIntersection(ray: Ray, poly: Polygon): Point | null {
   }
   return closest;
 }
-
-// ==========================
-// Test suite
-// ==========================
-function runTests() {
-  function assert(condition: boolean, message: string) {
-    if (!condition) {
-      throw new Error("Assertion failed: " + message);
-    }
-  }
-  console.log("Running tests...");
-
-  // Use Euclidean distance for the engine.
-  const engine = new GeometryEngine(distance);
-
-  // --- Point-to-point distance ---
-  const p1: Point = { x: 0, y: 0 };
-  const p2: Point = { x: 3, y: 4 };
-  assert(Math.abs(engine.pointToPointDistance(p1, p2) - 5) < EPSILON, "Point-to-point distance");
-
-  // --- Point-to-line distance ---
-  const line: LineSegment = { start: { x: 0, y: 0 }, end: { x: 10, y: 0 } };
-  const p3: Point = { x: 5, y: 5 };
-  assert(Math.abs(engine.pointToLineDistance(p3, line) - 5) < EPSILON, "Point-to-line distance");
-
-  // --- Point-to-circle distance ---
-  const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
-  const p4: Point = { x: 0, y: 10 };
-  assert(Math.abs(engine.pointToCircleDistance(p4, circle) - 5) < EPSILON, "Point-to-circle distance");
-  assert(engine.pointToCircleDistance({ x: 0, y: 0 }, circle) === 0, "Point inside circle");
-
-  // --- Point-to-polygon distance & pointInPolygon ---
-  const square = new Polygon2D([{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }]);
-  const p5: Point = { x: 5, y: 5 };
-  assert(engine.pointToPolygonDistance(p5, square) === 0, "Point inside polygon");
-  const p6: Point = { x: -5, y: 5 };
-  assert(Math.abs(engine.pointToPolygonDistance(p6, square) - 5) < EPSILON, "Point outside polygon");
-
-  // --- Line-to-line distance ---
-  const line2: LineSegment = { start: { x: 0, y: 5 }, end: { x: 10, y: 5 } };
-  assert(engine.lineToLineDistance(line, line2) === 5, "Line-to-line distance");
-
-  // --- Line-to-circle distance ---
-  assert(engine.lineToCircleDistance(line, circle) === 0, "Line intersects circle");
-  const line3: LineSegment = { start: { x: 6, y: 6 }, end: { x: 10, y: 6 } };
-  assert(engine.lineToCircleDistance(line3, circle) > 0, "Line outside circle");
-
-  // --- Line-to-polygon distance ---
-  const line4: LineSegment = { start: { x: -5, y: 5 }, end: { x: -1, y: 5 } };
-  assert(Math.abs(engine.lineToPolygonDistance(line4, square) - 1) < EPSILON, "Line-to-polygon distance");
-
-  // --- Circle-to-circle distance ---
-  const circle2: Circle = { center: { x: 15, y: 0 }, radius: 5 };
-  assert(engine.circleToCircleDistance(circle, circle2) === 5, "Circle-to-circle distance");
-
-  // --- Circle-to-polygon distance ---
-  const triangle = new Polygon2D([{ x: 20, y: 20 }, { x: 30, y: 20 }, { x: 25, y: 30 }]);
-  assert(engine.circleToPolygonDistance(circle, square) === 0, "Circle intersects square");
-  const circle3: Circle = { center: { x: -10, y: -10 }, radius: 2 };
-  assert(engine.circleToPolygonDistance(circle3, square) > 0, "Circle outside square");
-
-  // --- Polygon-to-polygon distance ---
-  const square2 = new Polygon2D([{ x: 20, y: 20 }, { x: 30, y: 20 }, { x: 30, y: 30 }, { x: 20, y: 30 }]);
-  assert(Math.abs(engine.polygonToPolygonDistance(square, square2) - 14.142135623730951) < EPSILON, "Polygon-to-polygon distance");
-
-  // --- Intersection tests ---
-  assert(engine.intersects(p1, p1), "Point equals point intersection");
-  assert(engine.intersects(p1, line), "Point on line intersection");
-  assert(!engine.intersects({ x: 5, y: 5 }, line), "Point not on line intersection");
-  assert(engine.intersects(circle, p1), "Circle contains point");
-  assert(engine.intersects(square, p5), "Polygon contains point");
-  assert(engine.intersects(line, line), "Line intersects itself");
-
-  // --- Contains tests ---
-  assert(engine.contains(circle, p1), "Circle contains point");
-  assert(!engine.contains(circle, p4), "Circle does not contain point on boundary");
-  assert(engine.contains(square, p5), "Square contains point");
-  assert(engine.contains(square, line), "Square contains line");
-  assert(!engine.contains(square, circle), "Square does not contain circle");
-
-  // --- Area and Perimeter ---
-  assert(Math.abs(engine.area(circle) - (Math.PI * 25)) < EPSILON, "Circle area");
-  assert(Math.abs(engine.perimeter(circle) - (2 * Math.PI * 5)) < EPSILON, "Circle perimeter");
-  assert(Math.abs(engine.area(square) - 100) < EPSILON, "Square area");
-  assert(Math.abs(engine.perimeter(square) - 40) < EPSILON, "Square perimeter");
-  assert(Math.abs(engine.perimeter(line) - 10) < EPSILON, "Line perimeter");
-
-  console.log("All tests passed.");
-}
-
-runTests();
