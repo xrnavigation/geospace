@@ -658,7 +658,7 @@ export class GeometryEngine implements GeometryOperations {
     const d1 = this.pointToPolygonDistance(l.start, poly);
     const d2 = this.pointToPolygonDistance(l.end, poly);
     minDist = Math.min(d1, d2);
-    const vertices = poly.vertices;
+    const vertices = poly.exterior;
     for (let i = 0; i < vertices.length; i++) {
       const edge: LineSegment = {
         start: vertices[i],
@@ -677,7 +677,7 @@ export class GeometryEngine implements GeometryOperations {
   circleToPolygonDistance(c: Circle, poly: Polygon): number {
     if (this.intersects(c, poly)) return 0;
     let minDist = Infinity;
-    const vertices = poly.vertices;
+    const vertices = poly.exterior;
     for (let i = 0; i < vertices.length; i++) {
       const edge: LineSegment = {
         start: vertices[i],
