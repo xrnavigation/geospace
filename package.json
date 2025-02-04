@@ -4,7 +4,9 @@
   "description": "Geometry Utilities",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "keywords": [
     "geometry"
