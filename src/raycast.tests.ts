@@ -69,6 +69,32 @@ describe('Ray Intersection Tests', () => {
   });
 });
 
+describe("Raycast Edge Cases", () => {
+  it("returns null for ray with zero direction vector on segment", () => {
+    const rayZero: Ray = { origin: { x: 0, y: 0 }, direction: { x: 0, y: 0 } };
+    const seg: LineSegment = { start: { x: 1, y: 1 }, end: { x: 2, y: 2 } };
+    const inter = raySegmentIntersection(rayZero, seg);
+    expect(inter).toBeNull();
+  });
+
+  it("detects intersection when ray starts inside a circle", () => {
+    const rayInside: Ray = { origin: { x: 5, y: 0 }, direction: { x: 1, y: 0 } };
+    const circle: Circle = { center: { x: 5, y: 0 }, radius: 2 };
+    const inter = rayCircleIntersection(rayInside, circle);
+    expect(inter).not.toBeNull();
+    expect(Math.abs(inter!.x - 7)).toBeLessThan(EPSILON);
+  });
+
+  it("detects tangent intersection with circle", () => {
+    const ray: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
+    const circle: Circle = { center: { x: 5, y: 1 }, radius: 1 };
+    const inter = rayCircleIntersection(ray, circle);
+    expect(inter).not.toBeNull();
+    expect(Math.abs(inter!.x - 5)).toBeLessThan(EPSILON);
+    expect(Math.abs(inter!.y - 0)).toBeLessThan(EPSILON);
+  });
+});
+
 describe('GeometryEngine Raycast Tests', () => {
   const rayOrigin: Point = { x: 0, y: 0 };
   const rayDirection: Point = { x: 1, y: 0 };

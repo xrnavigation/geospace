@@ -183,3 +183,32 @@ describe('GeometryEngine', () => {
     });
   });
 });
+
+describe("Edge Cases", () => {
+  it("throws error when creating a polygon with less than 3 vertices", () => {
+    expect(() => new Polygon2D([{ x: 0, y: 0 }, { x: 1, y: 1 }])).toThrowError("A polygon must have at least 3 vertices");
+  });
+
+  it("throws error when creating a circle with non-positive radius", () => {
+    expect(() => { new Circle2D({ x: 0, y: 0 }, 0); }).toThrow();
+    expect(() => { new Circle2D({ x: 0, y: 0 }, -5); }).toThrow();
+  });
+
+  it("considers a point on the vertex of a polygon as intersecting", () => {
+    const square = new Polygon2D([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ]);
+    const p = { x: 0, y: 0 };
+    const engineLocal = new GeometryEngine(euclideanDistance);
+    expect(engineLocal.intersects(p, square)).toBe(true);
+  });
+
+  it("calculates zero distance for overlapping identical shapes", () => {
+    const p: Point = { x: 5, y: 5 };
+    const engineLocal = new GeometryEngine(euclideanDistance);
+    expect(engineLocal.pointToPointDistance(p, p)).toBe(0);
+  });
+});

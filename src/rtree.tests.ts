@@ -77,6 +77,45 @@ describe("RTree", () => {
   });
 });
 
+describe("RTree Edge Cases", () => {
+  test("search on empty tree returns empty array", () => {
+    const rtree = new RTree();
+    expect(rtree.search({ minX: 0, minY: 0, maxX: 10, maxY: 10 })).toHaveLength(0);
+  });
+
+  test("remove non-existent item returns false", () => {
+    const rtree = new RTree();
+    const dummyItem = {
+      id: "dummy",
+      geometry: new Point2D(5, 5),
+      metadata: {},
+      getBoundingBox: function () {
+        return this.geometry.getBoundingBox();
+      }
+    };
+    expect(rtree.remove(dummyItem)).toBe(false);
+  });
+
+  test("nearest on empty tree returns empty array", () => {
+    const rtree = new RTree();
+    expect(rtree.nearest({ x: 0, y: 0 }, 5)).toHaveLength(0);
+  });
+
+  test("inserting duplicate items", () => {
+    const rtree = new RTree();
+    const item = {
+      id: "dup",
+      geometry: new Point2D(1, 1),
+      metadata: {},
+      getBoundingBox: function () { return this.geometry.getBoundingBox(); }
+    };
+    rtree.insert(item);
+    rtree.insert(item);
+    const result = rtree.search({ minX: 0, minY: 0, maxX: 2, maxY: 2 });
+    expect(result.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
 describe("GeometryEngine with spatial index", () => {
   test("spatial queries", () => {
     const rtreeForEngine = new RTree<SpatialItem>();
