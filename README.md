@@ -2,6 +2,10 @@
 
 A high-performance 2D geometry library with spatial indexing capabilities. Features numerically stable operations, quadratic-split R-tree indexing, and optimized polygon routines.
 
+![Build Status](https://img.shields.io/github/workflow/status/internal/geospace/CI)
+![Coverage](https://img.shields.io/codecov/c/github/internal/geospace)
+![Version](https://img.shields.io/npm/v/@internal/geospace)
+
 ## Features
 
 - **Comprehensive Geometry Support**: Points, lines, circles, polygons, and rays with full type safety
@@ -75,8 +79,54 @@ const nearest = rtree.nearest(point, k);
 
 - Use bulk loading for better R-tree performance when adding many items
 - Cache bounding boxes when possible
-- Consider using the spatial index for large datasets
+- Consider using the spatial index for large datasets (>1000 items)
 - Pre-compute and store complex polygon operations
+- Use the appropriate epsilon value for your use case (default: 1e-10)
+- Avoid creating temporary geometries in tight loops
+- Consider using TypeScript's const assertions for immutable geometries
+- Profile and optimize raycasting operations for specific use cases
+
+### Memory Usage
+
+The library uses several techniques to minimize memory usage:
+
+```typescript
+// Use shared vertices for polygons
+const sharedVertices = [
+  { x: 0, y: 0 }, { x: 1, y: 0 }, 
+  { x: 1, y: 1 }, { x: 0, y: 1 }
+];
+const poly1 = new Polygon2D(sharedVertices);
+const poly2 = new Polygon2D(sharedVertices);
+
+// Take advantage of bounding box caching
+const item: SpatialItem = {
+  id: "cached",
+  geometry: new Polygon2D(...),
+  getBoundingBox() {
+    return this._cachedBox ??= this.geometry.getBoundingBox();
+  }
+};
+```
+
+### Numerical Stability
+
+The library uses epsilon-based comparisons to handle floating-point arithmetic:
+
+```typescript
+// Default epsilon: 1e-10
+const EPSILON = 1e-10;
+
+// Example of stable point-on-line test
+const isOnLine = engine.pointToLineDistance(point, line) < EPSILON;
+
+// Custom epsilon for specific use cases
+const customEngine = new GeometryEngine(
+  distance,
+  undefined,
+  1e-6 // Custom epsilon
+);
+```
 
 ## Examples
 
@@ -166,6 +216,68 @@ console.log("Unified raycast all (closest):", resAll);
 ```
 ```
 
+## TypeScript Configuration
+
+The library requires TypeScript 4.8+ and these compiler options:
+
+```typescript
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "moduleResolution": "node"
+  }
+}
+```
+
+## Error Handling
+
+The library throws typed errors for various conditions:
+
+```typescript
+try {
+  const polygon = new Polygon2D([{x:0,y:0}, {x:1,y:1}]); 
+} catch (e) {
+  if (e instanceof GeometryError) {
+    console.error("Invalid geometry:", e.message);
+  }
+}
+
+// Custom error types
+export class GeometryError extends Error {}
+export class InvalidPolygonError extends GeometryError {}
+export class InvalidCircleError extends GeometryError {}
+export class TransformError extends GeometryError {}
+```
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. Numerical Precision
+   - Use appropriate epsilon value
+   - Consider input coordinate ranges
+   - Watch for accumulated errors
+
+2. Performance
+   - Profile with Chrome DevTools
+   - Use bulk operations
+   - Optimize spatial index usage
+
+3. Memory Leaks
+   - Clear spatial indices
+   - Avoid circular references
+   - Use WeakMap for caches
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch
+3. Add tests
+4. Update documentation
+5. Submit PR
+
 ## API Documentation
 
 See inline TypeScript interfaces and comments for detailed API documentation:
@@ -174,6 +286,9 @@ See inline TypeScript interfaces and comments for detailed API documentation:
 - `Transform`: Chainable geometric transformations
 - `SpatialIndex`: Spatial indexing operations
 - `Bounded`: Interface for anything that can be bounded by a box
+- `GeometryEngine`: Main entry point for all operations
+- `RTree`: Spatial indexing implementation
+- `AffineTransform`: Transformation utilities
 
 ## Testing
 
