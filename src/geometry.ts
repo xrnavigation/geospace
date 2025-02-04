@@ -128,6 +128,10 @@ export interface Bounded {
   getBoundingBox(): BoundingBox;
 }
 
+export interface MultiPoint {
+  readonly points: readonly Point[];
+}
+
 /**
  * Interface for chainable geometric transformations.
  * Allows composing multiple transformations that can be applied to any geometry type.
@@ -244,7 +248,45 @@ export interface RaycastResult {
 }
 
 /** Union type of all geometry types */
-export type Geometry = Point2D | LineSegment2D | Circle2D | Polygon2D | MultiPoint2D;
+export type Geometry = (Point | LineSegment | Circle | Polygon | MultiPoint) & Partial<Bounded>;
+
+export function getBBox(geom: Geometry): BoundingBox {
+  if (geom && typeof (geom as any).getBoundingBox === "function") {
+    return (geom as any).getBoundingBox();
+  }
+  if ("x" in geom && "y" in geom) {
+    return { minX: geom.x, minY: geom.y, maxX: geom.x, maxY: geom.y };
+  }
+  if ("start" in geom && "end" in geom) {
+    const { start, end } = geom as any;
+    return {
+      minX: Math.min(start.x, end.x),
+      minY: Math.min(start.y, end.y),
+      maxX: Math.max(start.x, end.x),
+      maxY: Math.max(start.y, end.y),
+    };
+  }
+  if ("center" in geom && "radius" in geom) {
+    const { center, radius } = geom as any;
+    return {
+      minX: center.x - radius,
+      minY: center.y - radius,
+      maxX: center.x + radius,
+      maxY: center.y + radius,
+    };
+  }
+  if ("exterior" in geom && Array.isArray((geom as any).exterior)) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const p of (geom as any).exterior) {
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y > maxY) maxY = p.y;
+    }
+    return { minX, minY, maxX, maxY };
+  }
+  throw new Error("Cannot compute bounding box for geometry");
+}
 
 /**
  * Represents a ray in 2D space starting from an origin and extending infinitely in a given direction.
@@ -604,28 +646,26 @@ function transformPoint(p: Point, m: number[]): Point {
 // ==========================
 // Type guards for geometry types
 // ==========================
-export function isPoint(geom: Geometry): geom is Point {
+export function isPoint(geom: any): geom is Point {
   return (
-    (geom as Point).x !== undefined &&
-    (geom as Point).y !== undefined &&
-    (geom as any).start === undefined &&
-    (geom as any).center === undefined &&
-    (geom as any).vertices === undefined
+    geom.x !== undefined &&
+    geom.y !== undefined &&
+    geom.start === undefined &&
+    geom.center === undefined &&
+    geom.vertices === undefined
   );
 }
-export function isLineSegment(geom: Geometry): geom is LineSegment {
-  return (geom as any).start !== undefined && (geom as any).end !== undefined;
+export function isLineSegment(geom: any): geom is LineSegment {
+  return geom.start !== undefined && geom.end !== undefined;
 }
-export function isCircle(geom: Geometry): geom is Circle {
-  return (
-    (geom as any).center !== undefined && (geom as any).radius !== undefined
-  );
+export function isCircle(geom: any): geom is Circle {
+  return geom.center !== undefined && geom.radius !== undefined;
 }
-export function isPolygon(geom: Geometry): geom is Polygon {
-  return (geom as any).exterior !== undefined;
+export function isPolygon(geom: any): geom is Polygon {
+  return geom.exterior !== undefined;
 }
-export function isMultiPoint(geom: Geometry): geom is MultiPoint2D {
-  return geom instanceof MultiPoint2D;
+export function isMultiPoint(geom: any): geom is MultiPoint {
+  return (geom as any).points !== undefined;
 }
 
 // ==========================
@@ -764,7 +804,7 @@ export class GeometryEngine implements GeometryOperations {
         maxY: a.center.y + a.radius,
       };
     } else if (isPolygon(a)) {
-      bboxA = a.getBoundingBox();
+      bboxA = getBBox(a);
     } else {
       throw new Error("Unknown geometry type");
     }
@@ -1003,34 +1043,7 @@ export class GeometryEngine implements GeometryOperations {
   query(geometry: Geometry): (Geometry & Bounded)[] {
     if (this.index) {
       let bbox: BoundingBox;
-      if ("getBoundingBox" in (geometry as any)) {
-        bbox = (geometry as Bounded).getBoundingBox();
-      } else if (isPoint(geometry)) {
-        bbox = {
-          minX: geometry.x,
-          minY: geometry.y,
-          maxX: geometry.x,
-          maxY: geometry.y,
-        };
-      } else if (isLineSegment(geometry)) {
-        bbox = {
-          minX: Math.min(geometry.start.x, geometry.end.x),
-          minY: Math.min(geometry.start.y, geometry.end.y),
-          maxX: Math.max(geometry.start.x, geometry.end.x),
-          maxY: Math.max(geometry.start.y, geometry.end.y),
-        };
-      } else if (isCircle(geometry)) {
-        bbox = {
-          minX: geometry.center.x - geometry.radius,
-          minY: geometry.center.y - geometry.radius,
-          maxX: geometry.center.x + geometry.radius,
-          maxY: geometry.center.y + geometry.radius,
-        };
-      } else if (isPolygon(geometry)) {
-        bbox = computePolygonBBox(geometry);
-      } else {
-        throw new Error("Unknown geometry type");
-      }
+      bbox = getBBox(geometry);
       return this.index.search(bbox) as (Geometry & Bounded)[];
     }
     return [];

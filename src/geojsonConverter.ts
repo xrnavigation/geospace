@@ -17,12 +17,15 @@ import {
   isLineSegment,
   isPoint,
   isPolygon,
+  isMultiPoint,
   LineSegment2D,
   Point2D,
   Polygon2D,
   MultiPoint2D,
   RTree,
   SpatialItem,
+  getBBox,
+  MultiPoint,
 } from "./geometry";
 
 export type SupportedGeoJSON = GeoJSONPoint | LineString | GeoJSONPolygon | MultiPoint;
@@ -145,7 +148,7 @@ export class GeoJSONConverter {
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
   static fromGeoJSON(
-    feature: Feature<SupportedGeoJSON, GeoJsonProperties>,
+    feature: Feature<any, GeoJsonProperties>,
     options?: GeoJSONOptions
   ): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
@@ -318,7 +321,7 @@ export class GeoJSONConverter {
               metadata: options?.transformProperties
                 ? options.transformProperties(feature.properties)
                 : feature.properties,
-              getBoundingBox: () => result.geometry.getBoundingBox(),
+              getBoundingBox: () => getBBox(result.geometry),
             } as T);
           } catch (err: any) {
             warnings.push(`Skipped feature: ${err.message}`);
