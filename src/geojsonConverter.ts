@@ -146,14 +146,7 @@ export class GeoJSONConverter {
    * @param options Optional conversion options.
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
-  static fromGeoJSON(feature: Feature<GeoJSONPoint, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<Point2D>;
-  static fromGeoJSON(feature: Feature<LineString, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<LineSegment2D>;
-  static fromGeoJSON(feature: Feature<GeoJSONPolygon, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<Polygon2D>;
-  static fromGeoJSON(feature: Feature<MultiPoint, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<MultiPoint2D>;
-  static fromGeoJSON(
-    feature: Feature<any, GeoJsonProperties>,
-    options?: GeoJSONOptions
-  ): ConversionResult<Geometry> {
+  static fromGeoJSON(feature: Feature<SupportedGeoJSON, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const warnings: string[] = [];
     if (!feature.geometry) {
@@ -328,7 +321,7 @@ export class GeoJSONConverter {
                 ? options.transformProperties(feature.properties)
                 : feature.properties,
               getBoundingBox: () => getBBox(result.geometry),
-            } as T);
+            } as unknown as T);
           } catch (err: any) {
             warnings.push(`Skipped feature: ${err.message}`);
           }
@@ -365,13 +358,14 @@ export class GeoJSONConverter {
   }
 
   private static closeRing(coords: Position[]): Position[] {
-    if (coords.length === 0) return coords;
-    const first = coords[0] as number[];
-    const last = coords[coords.length - 1] as number[];
+    const ring = coords as number[][];
+    if (ring.length === 0) return ring;
+    const first = ring[0];
+    const last = ring[ring.length - 1];
     if (first[0] !== last[0] || first[1] !== last[1]) {
-      coords.push([...first]);
+      ring.push([...first]);
     }
-    return coords;
+    return ring;
   }
 
   private static toPosition(
