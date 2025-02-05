@@ -18,33 +18,33 @@ describe('GeometryEngine', () => {
   const engine = new GeometryEngine(euclideanDistance);
   
   describe('Point Operations', () => {
-    const p1: Point = { x: 0, y: 0 };
-    const p2: Point = { x: 3, y: 4 };
-    const p3: Point = { x: 5, y: 5 };
-    const p4: Point = { x: 0, y: 10 };
-    const p5: Point = { x: 5, y: 5 };
-    const p6: Point = { x: -5, y: 5 };
+    const p1: Point = new Point2D(0, 0);
+    const p2: Point = new Point2D(3, 4);
+    const p3: Point = new Point2D(5, 5);
+    const p4: Point = new Point2D(0, 10);
+    const p5: Point = new Point2D(5, 5);
+    const p6: Point = new Point2D(-5, 5);
 
     it('calculates point-to-point distance', () => {
       expect(Math.abs(engine.pointToPointDistance(p1, p2) - 5)).toBeLessThan(EPSILON);
     });
 
-    const line: LineSegment = { start: { x: 0, y: 0 }, end: { x: 10, y: 0 } };
+    const line: LineSegment = new LineSegment2D(new Point2D(0, 0), new Point2D(10, 0));
     it('calculates point-to-line distance', () => {
       expect(Math.abs(engine.pointToLineDistance(p3, line) - 5)).toBeLessThan(EPSILON);
     });
 
-    const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
+    const circle: Circle = new Circle2D(new Point2D(0, 0), 5);
     it('calculates point-to-circle distance', () => {
       expect(Math.abs(engine.pointToCircleDistance(p4, circle) - 5)).toBeLessThan(EPSILON);
       expect(engine.pointToCircleDistance({ x: 0, y: 0 }, circle)).toBe(0);
     });
 
     const square = new Polygon2D([
-      { x: 0, y: 0 },
-      { x: 10, y: 0 },
-      { x: 10, y: 10 },
-      { x: 0, y: 10 },
+      new Point2D(0, 0),
+      new Point2D(10, 0),
+      new Point2D(10, 10),
+      new Point2D(0, 10),
     ]);
     
     it('calculates point-to-polygon distance', () => {
@@ -137,7 +137,7 @@ describe('GeometryEngine', () => {
     it('detects various intersections', () => {
       expect(engine.intersects(p1, p1)).toBe(true);
       expect(engine.intersects(p1, line)).toBe(true);
-      expect(engine.intersects({ x: 5, y: 5 }, line)).toBe(false);
+      expect(engine.intersects(new Point2D(5, 5), line)).toBe(false);
       expect(engine.intersects(circle, p1)).toBe(true);
       expect(engine.intersects(square, p5)).toBe(true);
       expect(engine.intersects(line, line)).toBe(true);
@@ -190,8 +190,8 @@ describe('GeometryEngine', () => {
 
   describe('Edge Cases - Collinear Segments', () => {
     it('detects overlapping vertical collinear segments', () => {
-      const line1 = { start: { x: 5, y: 0 }, end: { x: 5, y: 10 } };
-      const line2 = { start: { x: 5, y: 5 }, end: { x: 5, y: 15 } };
+      const line1 = new LineSegment2D(new Point2D(5, 0), new Point2D(5, 10));
+      const line2 = new LineSegment2D(new Point2D(5, 5), new Point2D(5, 15));
       const engineLocal = new GeometryEngine(euclideanDistance);
       expect(engineLocal.intersects(line1, line2)).toBe(true);
     });
@@ -199,16 +199,16 @@ describe('GeometryEngine', () => {
 
   describe('Polygon Holes - Intersection', () => {
     const outer = [
-      { x: 0, y: 0 },
-      { x: 10, y: 0 },
-      { x: 10, y: 10 },
-      { x: 0, y: 10 }
+      new Point2D(0, 0),
+      new Point2D(10, 0),
+      new Point2D(10, 10),
+      new Point2D(0, 10)
     ];
     const hole = [
-      { x: 4, y: 4 },
-      { x: 6, y: 4 },
-      { x: 6, y: 6 },
-      { x: 4, y: 6 }
+      new Point2D(4, 4),
+      new Point2D(6, 4),
+      new Point2D(6, 6),
+      new Point2D(4, 6)
     ];
     const donut = new Polygon2D(outer, [hole]);
 

@@ -6,10 +6,10 @@ const engine = new GeometryEngine((a, b) => Math.sqrt(Math.pow(b.x - a.x, 2) + M
 
 describe('Ray Intersection Tests', () => {
   describe('Ray vs Line Segment', () => {
-    const ray1: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
+    const ray1: Ray = { origin: new Point2D(0, 0), direction: new Point2D(1, 0) };
 
     it('should detect intersection when ray hits segment', () => {
-      const seg1: LineSegment = { start: { x: 2, y: -1 }, end: { x: 2, y: 1 } };
+      const seg1: LineSegment = new LineSegment2D(new Point2D(2, -1), new Point2D(2, 1));
       const inter1 = raySegmentIntersection(ray1, seg1);
       expect(inter1).not.toBeNull();
       expect(Math.abs(inter1!.x - 2)).toBeLessThan(EPSILON);
@@ -17,38 +17,38 @@ describe('Ray Intersection Tests', () => {
     });
 
     it('should return null when ray misses segment', () => {
-      const seg2: LineSegment = { start: { x: 0, y: 1 }, end: { x: 1, y: 1 } };
+      const seg2: LineSegment = new LineSegment2D(new Point2D(0, 1), new Point2D(1, 1));
       const inter2 = raySegmentIntersection(ray1, seg2);
       expect(inter2).toBeNull();
     });
   });
 
   describe('Ray vs Circle', () => {
-    const ray1: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
+    const ray1: Ray = { origin: new Point2D(0, 0), direction: new Point2D(1, 0) };
 
     it('should detect intersection when ray hits circle', () => {
-      const circle2: Circle = { center: { x: 5, y: 0 }, radius: 1 };
+      const circle2: Circle = new Circle2D(new Point2D(5, 0), 1);
       const inter3 = rayCircleIntersection(ray1, circle2);
       expect(inter3).not.toBeNull();
       expect(Math.abs(inter3!.x - 4)).toBeLessThan(EPSILON);
     });
 
     it('should return null when ray misses circle', () => {
-      const circle3: Circle = { center: { x: 0, y: 5 }, radius: 1 };
+      const circle3: Circle = new Circle2D(new Point2D(0, 5), 1);
       const inter4 = rayCircleIntersection(ray1, circle3);
       expect(inter4).toBeNull();
     });
   });
 
   describe('Ray vs Polygon', () => {
-    const ray2: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 1 } };
+    const ray2: Ray = { origin: new Point2D(0, 0), direction: new Point2D(1, 1) };
 
     it('should detect intersection when ray hits polygon', () => {
       const square2 = new Polygon2D([
-        { x: 3, y: 3 },
-        { x: 7, y: 3 },
-        { x: 7, y: 7 },
-        { x: 3, y: 7 },
+        new Point2D(3, 3),
+        new Point2D(7, 3),
+        new Point2D(7, 7),
+        new Point2D(3, 7),
       ]);
       const inter5 = rayPolygonIntersection(ray2, square2);
       expect(inter5).not.toBeNull();
@@ -58,10 +58,10 @@ describe('Ray Intersection Tests', () => {
 
     it('should return null when ray misses polygon', () => {
       const square3 = new Polygon2D([
-        { x: -7, y: -7 },
-        { x: -3, y: -7 },
-        { x: -3, y: -3 },
-        { x: -7, y: -3 },
+        new Point2D(-7, -7),
+        new Point2D(-3, -7),
+        new Point2D(-3, -3),
+        new Point2D(-7, -3),
       ]);
       const inter6 = rayPolygonIntersection(ray2, square3);
       expect(inter6).toBeNull();
@@ -71,23 +71,23 @@ describe('Ray Intersection Tests', () => {
 
 describe("Raycast Edge Cases", () => {
   it("returns null for ray with zero direction vector on segment", () => {
-    const rayZero: Ray = { origin: { x: 0, y: 0 }, direction: { x: 0, y: 0 } };
-    const seg: LineSegment = { start: { x: 1, y: 1 }, end: { x: 2, y: 2 } };
+    const rayZero: Ray = { origin: new Point2D(0, 0), direction: new Point2D(0, 0) };
+    const seg: LineSegment = new LineSegment2D(new Point2D(1, 1), new Point2D(2, 2));
     const inter = raySegmentIntersection(rayZero, seg);
     expect(inter).toBeNull();
   });
 
   it("detects intersection when ray starts inside a circle", () => {
-    const rayInside: Ray = { origin: { x: 5, y: 0 }, direction: { x: 1, y: 0 } };
-    const circle: Circle = { center: { x: 5, y: 0 }, radius: 2 };
+    const rayInside: Ray = { origin: new Point2D(5, 0), direction: new Point2D(1, 0) };
+    const circle: Circle = new Circle2D(new Point2D(5, 0), 2);
     const inter = rayCircleIntersection(rayInside, circle);
     expect(inter).not.toBeNull();
     expect(Math.abs(inter!.x - 7)).toBeLessThan(EPSILON);
   });
 
   it("detects tangent intersection with circle", () => {
-    const ray: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
-    const circle: Circle = { center: { x: 5, y: 1 }, radius: 1 };
+    const ray: Ray = { origin: new Point2D(0, 0), direction: new Point2D(1, 0) };
+    const circle: Circle = new Circle2D(new Point2D(5, 1), 1);
     const inter = rayCircleIntersection(ray, circle);
     expect(inter).not.toBeNull();
     expect(Math.abs(inter!.x - 5)).toBeLessThan(EPSILON);
@@ -96,18 +96,18 @@ describe("Raycast Edge Cases", () => {
 });
 
 describe('GeometryEngine Raycast Tests', () => {
-  const rayOrigin: Point = { x: 0, y: 0 };
-  const rayDirection: Point = { x: 1, y: 0 };
+  const rayOrigin: Point = new Point2D(0, 0);
+  const rayDirection: Point = new Point2D(1, 0);
 
   it('should detect intersection with line segment', () => {
-    const seg: LineSegment = { start: { x: 2, y: -1 }, end: { x: 2, y: 1 } };
+    const seg: LineSegment = new LineSegment2D(new Point2D(2, -1), new Point2D(2, 1));
     const resultSeg = engine.raycast(rayOrigin, rayDirection, seg);
     expect(resultSeg).not.toBeNull();
     expect(Math.abs(resultSeg!.point.x - 2)).toBeLessThan(EPSILON);
   });
 
   it('should detect intersection with circle', () => {
-    const circle: Circle = { center: { x: 5, y: 0 }, radius: 1 };
+    const circle: Circle = new Circle2D(new Point2D(5, 0), 1);
     const resultCircle = engine.raycast(rayOrigin, rayDirection, circle);
     expect(resultCircle).not.toBeNull();
     expect(Math.abs(resultCircle!.point.x - 4)).toBeLessThan(EPSILON);
@@ -115,10 +115,10 @@ describe('GeometryEngine Raycast Tests', () => {
 
   it('should detect intersection with polygon', () => {
     const poly = new Polygon2D([
-      { x: 3, y: 3 },
-      { x: 7, y: 3 },
-      { x: 7, y: 7 },
-      { x: 3, y: 7 },
+      new Point2D(3, 3),
+      new Point2D(7, 3),
+      new Point2D(7, 7),
+      new Point2D(3, 7),
     ]);
     const resultPoly = engine.raycast(rayOrigin, rayDirection, poly);
     expect(resultPoly).not.toBeNull();
@@ -126,13 +126,13 @@ describe('GeometryEngine Raycast Tests', () => {
   });
 
   it('should find closest intersection when casting against multiple geometries', () => {
-    const seg: LineSegment = { start: { x: 2, y: -1 }, end: { x: 2, y: 1 } };
-    const circle: Circle = { center: { x: 5, y: 0 }, radius: 1 };
+    const seg: LineSegment = new LineSegment2D(new Point2D(2, -1), new Point2D(2, 1));
+    const circle: Circle = new Circle2D(new Point2D(5, 0), 1);
     const poly = new Polygon2D([
-      { x: 3, y: 3 },
-      { x: 7, y: 3 },
-      { x: 7, y: 7 },
-      { x: 3, y: 7 },
+      new Point2D(3, 3),
+      new Point2D(7, 3),
+      new Point2D(7, 7),
+      new Point2D(3, 7),
     ]);
     const geometries: Geometry[] = [seg, circle, poly];
     const resultAll = engine.raycastAll(rayOrigin, rayDirection, geometries);
