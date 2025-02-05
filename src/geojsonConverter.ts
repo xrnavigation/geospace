@@ -146,6 +146,10 @@ export class GeoJSONConverter {
    * @param options Optional conversion options.
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
+  static fromGeoJSON(feature: Feature<GeoJSONPoint, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<Point2D>;
+  static fromGeoJSON(feature: Feature<LineString, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<LineSegment2D>;
+  static fromGeoJSON(feature: Feature<GeoJSONPolygon, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<Polygon2D>;
+  static fromGeoJSON(feature: Feature<MultiPoint, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<MultiPoint2D>;
   static fromGeoJSON(
     feature: Feature<any, GeoJsonProperties>,
     options?: GeoJSONOptions
@@ -380,7 +384,7 @@ export class GeoJSONConverter {
       }
     }
     return options.transformCoordinates
-      ? options.transformCoordinates(coord)
+      ? (options.transformCoordinates(coord) as Position)
       : coord;
   }
 

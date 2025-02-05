@@ -255,24 +255,24 @@ export function getBBox(geom: Geometry): BoundingBox {
     return (geom as any).getBoundingBox();
   }
   if ("x" in geom && "y" in geom) {
-    return { minX: geom.x, minY: geom.y, maxX: geom.x, maxY: geom.y };
+    return { minX: (geom as any).x!, minY: (geom as any).y!, maxX: (geom as any).x!, maxY: (geom as any).y! };
   }
   if ("start" in geom && "end" in geom) {
     const { start, end } = geom as any;
     return {
-      minX: Math.min(start.x, end.x),
-      minY: Math.min(start.y, end.y),
-      maxX: Math.max(start.x, end.x),
-      maxY: Math.max(start.y, end.y),
+      minX: Math.min(start.x!, end.x!),
+      minY: Math.min(start.y!, end.y!),
+      maxX: Math.max(start.x!, end.x!),
+      maxY: Math.max(start.y!, end.y!),
     };
   }
   if ("center" in geom && "radius" in geom) {
     const { center, radius } = geom as any;
     return {
-      minX: center.x - radius,
-      minY: center.y - radius,
-      maxX: center.x + radius,
-      maxY: center.y + radius,
+      minX: center.x! - radius,
+      minY: center.y! - radius,
+      maxX: center.x! + radius,
+      maxY: center.y! + radius,
     };
   }
   if ("exterior" in geom && Array.isArray((geom as any).exterior)) {
