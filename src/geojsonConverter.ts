@@ -152,9 +152,6 @@ export class GeoJSONConverter {
     if (!feature.geometry) {
       throw new Error("Feature has no geometry");
     }
-    if (feature.geometry.type === "GeometryCollection") {
-      throw new Error("Unsupported GeoJSON geometry type: GeometryCollection");
-    }
     if (!["Point", "LineString", "Polygon", "MultiPoint"].includes(feature.geometry.type)) {
       throw new Error(`Unsupported GeoJSON geometry type: ${feature.geometry.type}`);
     }
@@ -243,10 +240,6 @@ export class GeoJSONConverter {
           warnings,
         };
       }
-      default:
-        throw new Error(
-          `Unsupported GeoJSON geometry type: ${feature.geometry.type}`
-        );
     }
   }
 
