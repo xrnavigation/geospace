@@ -20,12 +20,12 @@ describe("GeometryEngine", () => {
   const engine = new GeometryEngine(euclideanDistance);
 
   describe("Point Operations", () => {
-    const p1: Point = new Point2D(0, 0);
-    const p2: Point = new Point2D(3, 4);
-    const p3: Point = new Point2D(5, 5);
-    const p4: Point = new Point2D(0, 10);
-    const p5: Point = new Point2D(5, 5);
-    const p6: Point = new Point2D(-5, 5);
+    const p1 = new Point2D(0, 0);
+    const p2 = new Point2D(3, 4);
+    const p3 = new Point2D(5, 5);
+    const p4 = new Point2D(0, 10);
+    const p5 = new Point2D(5, 5);
+    const p6 = new Point2D(-5, 5);
 
     it("calculates point-to-point distance", () => {
       expect(Math.abs(engine.pointToPointDistance(p1, p2) - 5)).toBeLessThan(
@@ -33,7 +33,7 @@ describe("GeometryEngine", () => {
       );
     });
 
-    const line: LineSegment = new LineSegment2D(
+    const line = new LineSegment2D(
       new Point2D(0, 0),
       new Point2D(10, 0)
     );
@@ -73,10 +73,10 @@ describe("GeometryEngine", () => {
     const line4: LineSegment = { start: { x: -5, y: 5 }, end: { x: -1, y: 5 } };
     const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
     const square = new Polygon2D([
-      { x: 0, y: 0 },
-      { x: 10, y: 0 },
-      { x: 10, y: 10 },
-      { x: 0, y: 10 },
+      new Point2D(0, 0),
+      new Point2D(10, 0),
+      new Point2D(10, 10),
+      new Point2D(0, 10),
     ]);
 
     it("calculates line-to-line distance", () => {
@@ -293,16 +293,16 @@ describe("Edge Cases", () => {
 
 describe("Polygon with Holes", () => {
   const outer = [
-    { x: 0, y: 0 },
-    { x: 10, y: 0 },
-    { x: 10, y: 10 },
-    { x: 0, y: 10 },
+    new Point2D(0, 0),
+    new Point2D(10, 0),
+    new Point2D(10, 10),
+    new Point2D(0, 10),
   ];
   const hole = [
-    { x: 3, y: 3 },
-    { x: 7, y: 3 },
-    { x: 7, y: 7 },
-    { x: 3, y: 7 },
+    new Point2D(3, 3),
+    new Point2D(7, 3),
+    new Point2D(7, 7),
+    new Point2D(3, 7),
   ];
   const donut = new Polygon2D(outer, [hole]);
 
@@ -371,9 +371,9 @@ describe("AffineTransform", () => {
 
   it("transforms a polygon", () => {
     const polygon = new Polygon2D([
-      { x: 0, y: 0 },
-      { x: 4, y: 0 },
-      { x: 4, y: 3 },
+      new Point2D(0, 0),
+      new Point2D(4, 0),
+      new Point2D(4, 3),
     ]);
     const transform = new AffineTransform().scale(2);
     const newPolygon = transform.apply(polygon) as Polygon2D;
