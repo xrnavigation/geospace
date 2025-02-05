@@ -43,7 +43,7 @@ describe("GeometryEngine", () => {
       );
     });
 
-    const circle: Circle = new Circle2D(new Point2D(0, 0), 5);
+    const circle = new Circle2D(new Point2D(0, 0), 5);
     it("calculates point-to-circle distance", () => {
       expect(
         Math.abs(engine.pointToCircleDistance(p4, circle) - 5)
