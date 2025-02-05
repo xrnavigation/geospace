@@ -1,23 +1,25 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 import {
+  AffineTransform,
   Circle,
   Circle2D,
   EPSILON,
   euclideanDistance,
   GeometryEngine,
   LineSegment,
+  LineSegment2D,
   Point,
+  Point2D,
   Polygon2D,
-  AffineTransform,
-  raySegmentIntersection,
   rayCircleIntersection,
-  rayPolygonIntersection
+  rayPolygonIntersection,
+  raySegmentIntersection,
 } from "./geometry";
 
-describe('GeometryEngine', () => {
+describe("GeometryEngine", () => {
   const engine = new GeometryEngine(euclideanDistance);
-  
-  describe('Point Operations', () => {
+
+  describe("Point Operations", () => {
     const p1: Point = new Point2D(0, 0);
     const p2: Point = new Point2D(3, 4);
     const p3: Point = new Point2D(5, 5);
@@ -25,18 +27,27 @@ describe('GeometryEngine', () => {
     const p5: Point = new Point2D(5, 5);
     const p6: Point = new Point2D(-5, 5);
 
-    it('calculates point-to-point distance', () => {
-      expect(Math.abs(engine.pointToPointDistance(p1, p2) - 5)).toBeLessThan(EPSILON);
+    it("calculates point-to-point distance", () => {
+      expect(Math.abs(engine.pointToPointDistance(p1, p2) - 5)).toBeLessThan(
+        EPSILON
+      );
     });
 
-    const line: LineSegment = new LineSegment2D(new Point2D(0, 0), new Point2D(10, 0));
-    it('calculates point-to-line distance', () => {
-      expect(Math.abs(engine.pointToLineDistance(p3, line) - 5)).toBeLessThan(EPSILON);
+    const line: LineSegment = new LineSegment2D(
+      new Point2D(0, 0),
+      new Point2D(10, 0)
+    );
+    it("calculates point-to-line distance", () => {
+      expect(Math.abs(engine.pointToLineDistance(p3, line) - 5)).toBeLessThan(
+        EPSILON
+      );
     });
 
     const circle: Circle = new Circle2D(new Point2D(0, 0), 5);
-    it('calculates point-to-circle distance', () => {
-      expect(Math.abs(engine.pointToCircleDistance(p4, circle) - 5)).toBeLessThan(EPSILON);
+    it("calculates point-to-circle distance", () => {
+      expect(
+        Math.abs(engine.pointToCircleDistance(p4, circle) - 5)
+      ).toBeLessThan(EPSILON);
       expect(engine.pointToCircleDistance({ x: 0, y: 0 }, circle)).toBe(0);
     });
 
@@ -46,14 +57,16 @@ describe('GeometryEngine', () => {
       new Point2D(10, 10),
       new Point2D(0, 10),
     ]);
-    
-    it('calculates point-to-polygon distance', () => {
+
+    it("calculates point-to-polygon distance", () => {
       expect(engine.pointToPolygonDistance(p5, square)).toBe(0);
-      expect(Math.abs(engine.pointToPolygonDistance(p6, square) - 5)).toBeLessThan(EPSILON);
+      expect(
+        Math.abs(engine.pointToPolygonDistance(p6, square) - 5)
+      ).toBeLessThan(EPSILON);
     });
   });
 
-  describe('Line Operations', () => {
+  describe("Line Operations", () => {
     const line: LineSegment = { start: { x: 0, y: 0 }, end: { x: 10, y: 0 } };
     const line2: LineSegment = { start: { x: 0, y: 5 }, end: { x: 10, y: 5 } };
     const line3: LineSegment = { start: { x: 6, y: 6 }, end: { x: 10, y: 6 } };
@@ -66,21 +79,23 @@ describe('GeometryEngine', () => {
       { x: 0, y: 10 },
     ]);
 
-    it('calculates line-to-line distance', () => {
+    it("calculates line-to-line distance", () => {
       expect(engine.lineToLineDistance(line, line2)).toBe(5);
     });
 
-    it('calculates line-to-circle distance', () => {
+    it("calculates line-to-circle distance", () => {
       expect(engine.lineToCircleDistance(line, circle)).toBe(0);
       expect(engine.lineToCircleDistance(line3, circle)).toBeGreaterThan(0);
     });
 
-    it('calculates line-to-polygon distance', () => {
-      expect(Math.abs(engine.lineToPolygonDistance(line4, square) - 1)).toBeLessThan(EPSILON);
+    it("calculates line-to-polygon distance", () => {
+      expect(
+        Math.abs(engine.lineToPolygonDistance(line4, square) - 1)
+      ).toBeLessThan(EPSILON);
     });
   });
 
-  describe('Circle Operations', () => {
+  describe("Circle Operations", () => {
     const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
     const circle2: Circle = { center: { x: 15, y: 0 }, radius: 5 };
     const circle3: Circle = { center: { x: -10, y: -10 }, radius: 2 };
@@ -91,17 +106,19 @@ describe('GeometryEngine', () => {
       { x: 0, y: 10 },
     ]);
 
-    it('calculates circle-to-circle distance', () => {
+    it("calculates circle-to-circle distance", () => {
       expect(engine.circleToCircleDistance(circle, circle2)).toBe(5);
     });
 
-    it('calculates circle-to-polygon distance', () => {
+    it("calculates circle-to-polygon distance", () => {
       expect(engine.circleToPolygonDistance(circle, square)).toBe(0);
-      expect(engine.circleToPolygonDistance(circle3, square)).toBeGreaterThan(0);
+      expect(engine.circleToPolygonDistance(circle3, square)).toBeGreaterThan(
+        0
+      );
     });
   });
 
-  describe('Polygon Operations', () => {
+  describe("Polygon Operations", () => {
     const square = new Polygon2D([
       { x: 0, y: 0 },
       { x: 10, y: 0 },
@@ -115,14 +132,16 @@ describe('GeometryEngine', () => {
       { x: 20, y: 30 },
     ]);
 
-    it('calculates polygon-to-polygon distance', () => {
-      expect(Math.abs(
-        engine.polygonToPolygonDistance(square, square2) - 14.142135623730951
-      )).toBeLessThan(EPSILON);
+    it("calculates polygon-to-polygon distance", () => {
+      expect(
+        Math.abs(
+          engine.polygonToPolygonDistance(square, square2) - 14.142135623730951
+        )
+      ).toBeLessThan(EPSILON);
     });
   });
 
-  describe('Intersection Tests', () => {
+  describe("Intersection Tests", () => {
     const p1: Point = { x: 0, y: 0 };
     const line: LineSegment = { start: { x: 0, y: 0 }, end: { x: 10, y: 0 } };
     const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
@@ -134,7 +153,7 @@ describe('GeometryEngine', () => {
     ]);
     const p5: Point = { x: 5, y: 5 };
 
-    it('detects various intersections', () => {
+    it("detects various intersections", () => {
       expect(engine.intersects(p1, p1)).toBe(true);
       expect(engine.intersects(p1, line)).toBe(true);
       expect(engine.intersects(new Point2D(5, 5), line)).toBe(false);
@@ -144,7 +163,7 @@ describe('GeometryEngine', () => {
     });
   });
 
-  describe('Contains Tests', () => {
+  describe("Contains Tests", () => {
     const p1: Point = { x: 0, y: 0 };
     const p4: Point = { x: 0, y: 10 };
     const p5: Point = { x: 5, y: 5 };
@@ -157,7 +176,7 @@ describe('GeometryEngine', () => {
       { x: 0, y: 10 },
     ]);
 
-    it('checks containment relationships', () => {
+    it("checks containment relationships", () => {
       expect(engine.contains(circle, p1)).toBe(true);
       expect(engine.contains(circle, p4)).toBe(false);
       expect(engine.contains(square, p5)).toBe(true);
@@ -166,7 +185,7 @@ describe('GeometryEngine', () => {
     });
   });
 
-  describe('Area and Perimeter', () => {
+  describe("Area and Perimeter", () => {
     const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
     const square = new Polygon2D([
       { x: 0, y: 0 },
@@ -176,20 +195,24 @@ describe('GeometryEngine', () => {
     ]);
     const line: LineSegment = { start: { x: 0, y: 0 }, end: { x: 10, y: 0 } };
 
-    it('calculates areas correctly', () => {
-      expect(Math.abs(engine.area(circle) - Math.PI * 25)).toBeLessThan(EPSILON);
+    it("calculates areas correctly", () => {
+      expect(Math.abs(engine.area(circle) - Math.PI * 25)).toBeLessThan(
+        EPSILON
+      );
       expect(Math.abs(engine.area(square) - 100)).toBeLessThan(EPSILON);
     });
 
-    it('calculates perimeters correctly', () => {
-      expect(Math.abs(engine.perimeter(circle) - 2 * Math.PI * 5)).toBeLessThan(EPSILON);
+    it("calculates perimeters correctly", () => {
+      expect(Math.abs(engine.perimeter(circle) - 2 * Math.PI * 5)).toBeLessThan(
+        EPSILON
+      );
       expect(Math.abs(engine.perimeter(square) - 40)).toBeLessThan(EPSILON);
       expect(Math.abs(engine.perimeter(line) - 10)).toBeLessThan(EPSILON);
     });
   });
 
-  describe('Edge Cases - Collinear Segments', () => {
-    it('detects overlapping vertical collinear segments', () => {
+  describe("Edge Cases - Collinear Segments", () => {
+    it("detects overlapping vertical collinear segments", () => {
       const line1 = new LineSegment2D(new Point2D(5, 0), new Point2D(5, 10));
       const line2 = new LineSegment2D(new Point2D(5, 5), new Point2D(5, 15));
       const engineLocal = new GeometryEngine(euclideanDistance);
@@ -197,31 +220,31 @@ describe('GeometryEngine', () => {
     });
   });
 
-  describe('Polygon Holes - Intersection', () => {
+  describe("Polygon Holes - Intersection", () => {
     const outer = [
       new Point2D(0, 0),
       new Point2D(10, 0),
       new Point2D(10, 10),
-      new Point2D(0, 10)
+      new Point2D(0, 10),
     ];
     const hole = [
       new Point2D(4, 4),
       new Point2D(6, 4),
       new Point2D(6, 6),
-      new Point2D(4, 6)
+      new Point2D(4, 6),
     ];
     const donut = new Polygon2D(outer, [hole]);
 
-    it('line through hole does not intersect polygon', () => {
+    it("line through hole does not intersect polygon", () => {
       const line = { start: { x: 5, y: 3 }, end: { x: 5, y: 7 } };
       const engineLocal = new GeometryEngine(euclideanDistance);
       expect(engineLocal.intersects(line, donut)).toBe(true);
-      
+
       const innerLine = { start: { x: 5, y: 4.5 }, end: { x: 5, y: 5.5 } };
       expect(engineLocal.intersects(innerLine, donut)).toBe(false);
     });
 
-    it('circle in hole does not intersect polygon', () => {
+    it("circle in hole does not intersect polygon", () => {
       const circle = new Circle2D({ x: 5, y: 5 }, 0.5);
       const engineLocal = new GeometryEngine(euclideanDistance);
       expect(engineLocal.intersects(circle, donut)).toBe(false);
@@ -231,12 +254,22 @@ describe('GeometryEngine', () => {
 
 describe("Edge Cases", () => {
   it("throws error when creating a polygon with less than 3 vertices", () => {
-    expect(() => new Polygon2D([{ x: 0, y: 0 }, { x: 1, y: 1 }])).toThrowError("A polygon must have at least 3 vertices");
+    expect(
+      () =>
+        new Polygon2D([
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ])
+    ).toThrowError("A polygon must have at least 3 vertices");
   });
 
   it("throws error when creating a circle with non-positive radius", () => {
-    expect(() => { new Circle2D({ x: 0, y: 0 }, 0); }).toThrow();
-    expect(() => { new Circle2D({ x: 0, y: 0 }, -5); }).toThrow();
+    expect(() => {
+      new Circle2D({ x: 0, y: 0 }, 0);
+    }).toThrow();
+    expect(() => {
+      new Circle2D({ x: 0, y: 0 }, -5);
+    }).toThrow();
   });
 
   it("considers a point on the vertex of a polygon as intersecting", () => {
@@ -258,7 +291,7 @@ describe("Edge Cases", () => {
   });
 });
 
-describe('Polygon with Holes', () => {
+describe("Polygon with Holes", () => {
   const outer = [
     { x: 0, y: 0 },
     { x: 10, y: 0 },
@@ -273,22 +306,27 @@ describe('Polygon with Holes', () => {
   ];
   const donut = new Polygon2D(outer, [hole]);
 
-  it('detects point inside exterior and outside hole as inside polygon', () => {
-    expect(donut.getBoundingBox()).toEqual({ minX: 0, minY: 0, maxX: 10, maxY: 10 });
+  it("detects point inside exterior and outside hole as inside polygon", () => {
+    expect(donut.getBoundingBox()).toEqual({
+      minX: 0,
+      minY: 0,
+      maxX: 10,
+      maxY: 10,
+    });
     const engineLocal = new GeometryEngine(euclideanDistance);
     // Points clearly in the exterior but not in the hole
     expect(engineLocal.intersects({ x: 1, y: 1 }, donut)).toBe(true);
     expect(engineLocal.contains(donut, { x: 8, y: 8 })).toBe(true);
   });
 
-  it('detects point inside the hole as outside polygon', () => {
+  it("detects point inside the hole as outside polygon", () => {
     const engineLocal = new GeometryEngine(euclideanDistance);
     expect(engineLocal.intersects({ x: 5, y: 5 }, donut)).toBe(false);
   });
 });
 
-describe('AffineTransform', () => {
-  it('translates a point', () => {
+describe("AffineTransform", () => {
+  it("translates a point", () => {
     const transform = new AffineTransform().translate({ x: 5, y: 7 });
     const p: Point = { x: 1, y: 2 };
     const p2 = transform.apply(p) as Point;
@@ -296,7 +334,7 @@ describe('AffineTransform', () => {
     expect(p2.y).toBeCloseTo(9, 10);
   });
 
-  it('rotates a point', () => {
+  it("rotates a point", () => {
     const transform = new AffineTransform().rotate(Math.PI / 2);
     const p: Point = { x: 1, y: 0 };
     const p2 = transform.apply(p) as Point;
@@ -304,7 +342,7 @@ describe('AffineTransform', () => {
     expect(p2.y).toBeCloseTo(1, 10);
   });
 
-  it('scales a point', () => {
+  it("scales a point", () => {
     const transform = new AffineTransform().scale(2);
     const p: Point = { x: 3, y: 4 };
     const p2 = transform.apply(p) as Point;
@@ -312,7 +350,7 @@ describe('AffineTransform', () => {
     expect(p2.y).toBeCloseTo(8, 10);
   });
 
-  it('transforms a line segment', () => {
+  it("transforms a line segment", () => {
     const line: LineSegment = { start: { x: 0, y: 0 }, end: { x: 2, y: 0 } };
     const transform = new AffineTransform().translate({ x: 1, y: 1 });
     const newLine = transform.apply(line) as { start: Point; end: Point };
@@ -322,7 +360,7 @@ describe('AffineTransform', () => {
     expect(newLine.end.y).toBeCloseTo(1, 10);
   });
 
-  it('transforms a circle', () => {
+  it("transforms a circle", () => {
     const circle: Circle = { center: { x: 0, y: 0 }, radius: 3 };
     const transform = new AffineTransform().translate({ x: 2, y: 2 });
     const newCircle = transform.apply(circle) as Circle;
@@ -331,8 +369,12 @@ describe('AffineTransform', () => {
     expect(newCircle.radius).toBeCloseTo(3, 10);
   });
 
-  it('transforms a polygon', () => {
-    const polygon = new Polygon2D([{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 3 }]);
+  it("transforms a polygon", () => {
+    const polygon = new Polygon2D([
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+      { x: 4, y: 3 },
+    ]);
     const transform = new AffineTransform().scale(2);
     const newPolygon = transform.apply(polygon) as Polygon2D;
     expect(newPolygon.exterior[0].x).toBeCloseTo(0, 10);
@@ -344,8 +386,8 @@ describe('AffineTransform', () => {
   });
 });
 
-describe('Ray Intersection', () => {
-  it('finds intersection between ray and line segment', () => {
+describe("Ray Intersection", () => {
+  it("finds intersection between ray and line segment", () => {
     const ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
     const seg: LineSegment = { start: { x: 5, y: -1 }, end: { x: 5, y: 1 } };
     const intersection = raySegmentIntersection(ray, seg);
@@ -356,14 +398,14 @@ describe('Ray Intersection', () => {
     }
   });
 
-  it('returns null for ray with no intersection on line segment', () => {
+  it("returns null for ray with no intersection on line segment", () => {
     const ray = { origin: { x: 0, y: 0 }, direction: { x: 0, y: 1 } };
     const seg: LineSegment = { start: { x: 5, y: -1 }, end: { x: 5, y: 1 } };
     const intersection = raySegmentIntersection(ray, seg);
     expect(intersection).toBeNull();
   });
 
-  it('finds intersection between ray and circle', () => {
+  it("finds intersection between ray and circle", () => {
     const ray = { origin: { x: -10, y: 0 }, direction: { x: 1, y: 0 } };
     const circle: Circle = { center: { x: 0, y: 0 }, radius: 5 };
     const intersection = rayCircleIntersection(ray, circle);
@@ -374,7 +416,7 @@ describe('Ray Intersection', () => {
     }
   });
 
-  it('finds intersection between ray and polygon', () => {
+  it("finds intersection between ray and polygon", () => {
     const square = new Polygon2D([
       { x: 0, y: 0 },
       { x: 10, y: 0 },
