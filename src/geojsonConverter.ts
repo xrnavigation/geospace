@@ -17,11 +17,11 @@ import {
   ValidationError,
   ConversionError,
   isFeature,
-  isPosition,
-  isPoint,
-  isLineString, 
-  isPolygon,
-  isMultiPoint
+  isGeoJSONPosition,
+  isGeoJSONPoint,
+  isGeoJSONLineString, 
+  isGeoJSONPolygon,
+  isGeoJSONMultiPoint
 } from "./geojson.types";
 
 import {
@@ -95,7 +95,7 @@ export class GeoJSONConverter {
           type: "MultiPoint",
           coordinates: geometry.points.map((p) => this.toPosition([p.x, p.y], opts)),
         };
-      } else if (isPoint(geometry)) {
+      } else if (isGeoJSONPoint(geometry)) {
         geoJsonGeometry = {
           type: "Point",
           coordinates: this.toPosition([geometry.x, geometry.y], opts),
@@ -121,7 +121,7 @@ export class GeoJSONConverter {
           };
           warnings.push("Circle converted to point with radius property");
         }
-      } else if (isPolygon(geometry)) {
+      } else if (isGeoJSONPolygon(geometry)) {
         const exterior = this.closeRing(
           geometry.exterior.map((p) => this.toPosition([p.x, p.y], opts))
         );
@@ -134,7 +134,7 @@ export class GeoJSONConverter {
           coordinates: [exterior, ...holes],
         };
       } else {
-        throw new Error("Unsupported geometry type");
+        throw new Error(`Unsupported geometry type: ${geometry.constructor.name}`);
       }
     } catch (err: any) {
       throw new Error(`GeoJSON conversion failed: ${err.message}`);
@@ -168,10 +168,10 @@ export class GeoJSONConverter {
       throw new ValidationError("Feature has no geometry");
     }
     
-    if (!isPoint(feature.geometry) && 
-        !isLineString(feature.geometry) && 
-        !isPolygon(feature.geometry) && 
-        !isMultiPoint(feature.geometry)) {
+    if (!isGeoJSONPoint(feature.geometry) && 
+        !isGeoJSONLineString(feature.geometry) && 
+        !isGeoJSONPolygon(feature.geometry) && 
+        !isGeoJSONMultiPoint(feature.geometry)) {
       throw new ValidationError(`Unsupported GeoJSON geometry type: ${feature.geometry.type}`);
     }
 
