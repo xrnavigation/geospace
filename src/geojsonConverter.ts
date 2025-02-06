@@ -181,8 +181,9 @@ export class GeoJSONConverter {
         warnings,
       };
     }
-
-    switch (feature.geometry.type) {
+    const geo = feature.geometry as SupportedGeoJSON;
+    
+    switch (geo.type) {
       case "Point": {
         const { coordinates } = geo as GeoJSONPoint;
         const [x, y] = this.fromPosition(coordinates, opts);
