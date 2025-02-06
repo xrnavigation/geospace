@@ -297,6 +297,83 @@ See inline TypeScript interfaces and comments for detailed API documentation:
 - `RTree`: Spatial indexing implementation
 - `AffineTransform`: Transformation utilities
 
+## Comprehensive Usage Examples
+
+This section demonstrates how to use all major features of the library.
+
+### Geometry Creation and Operations
+```typescript
+import { Point2D, Circle2D, LineSegment2D, Polygon2D, euclideanDistance, GeometryEngine } from '@xrnavigation/geospace';
+
+const pt = new Point2D(1, 2);
+const circle = new Circle2D({ x: 5, y: 5 }, 3);
+const line = new LineSegment2D(new Point2D(0, 0), new Point2D(10, 0));
+const polygon = new Polygon2D([
+  { x: 0, y: 0 },
+  { x: 10, y: 0 },
+  { x: 10, y: 10 },
+  { x: 0, y: 10 },
+]);
+
+const engine = new GeometryEngine(euclideanDistance);
+console.log("Distance from point to circle:", engine.pointToCircleDistance(pt, circle));
+console.log("Line to polygon distance:", engine.lineToPolygonDistance(line, polygon));
+```
+
+### Affine Transformations
+```typescript
+import { AffineTransform, Point2D } from '@xrnavigation/geospace';
+
+const transform = new AffineTransform()
+  .translate({ x: 2, y: 3 })
+  .rotate(Math.PI / 4)
+  .scale(1.5);
+
+const original = new Point2D(1, 1);
+const transformed = transform.apply(original);
+console.log("Transformed Point:", transformed);
+```
+
+### Spatial Indexing with RTree
+```typescript
+import { RTree, Point2D } from '@xrnavigation/geospace';
+
+// Create and populate an R-tree
+const rtree = new RTree();
+rtree.insert({ id: "pt1", geometry: new Point2D(1, 1), metadata: {}, getBoundingBox: () => new Point2D(1, 1).getBoundingBox() });
+rtree.insert({ id: "pt2", geometry: new Point2D(5, 5), metadata: {}, getBoundingBox: () => new Point2D(5, 5).getBoundingBox() });
+
+// Perform search and nearest neighbor query
+console.log("Items in box:", rtree.search({ minX: 0, minY: 0, maxX: 3, maxY: 3 }));
+console.log("Nearest to (0,0):", rtree.nearest(new Point2D(0, 0), 1));
+```
+
+### Raycasting
+```typescript
+import { Point2D, LineSegment2D, raySegmentIntersection, Ray } from '@xrnavigation/geospace';
+
+const ray: Ray = {
+  origin: new Point2D(0, 0),
+  direction: new Point2D(1, 0)
+};
+
+const seg = new LineSegment2D(new Point2D(2, -1), new Point2D(2, 1));
+const intersection = raySegmentIntersection(ray, seg);
+console.log("Ray-Segment Intersection:", intersection);
+```
+
+### GeoJSON Conversion
+```typescript
+import { GeoJSONConverter, Point2D } from '@xrnavigation/geospace';
+
+const geoPoint = new Point2D(1, 2);
+const feature = GeoJSONConverter.toGeoJSON(geoPoint);
+console.log("GeoJSON Feature:", feature);
+
+const converted = GeoJSONConverter.fromGeoJSON(feature.geometry);
+console.log("Converted Geometry:", converted);
+```
+
 ## Testing
 
 Run the comprehensive test suite:
