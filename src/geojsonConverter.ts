@@ -1,13 +1,25 @@
-import type {
+import {
   Feature,
   FeatureCollection,
   Point as GeoJSONPoint,
   MultiPoint,
   Polygon as GeoJSONPolygon,
-  GeoJsonProperties,
   LineString,
   Position,
+  GeoJsonProperties
 } from "geojson";
+
+import {
+  GeoJSONOptions,
+  ValidationOptions,
+  ValidationResult,
+  ValidatedFeature,
+  ValidatedFeatureCollection,
+  ValidationError,
+  ConversionError,
+  isFeature,
+  isPosition
+} from "./geojson.types";
 
 import {
   Circle,

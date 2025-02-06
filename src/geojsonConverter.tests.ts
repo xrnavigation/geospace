@@ -4,9 +4,7 @@ import { GeoJSONConverter } from "./geojsonConverter";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import { RTree } from "./geometry";
 
-function isGeoJSONPoint(obj: any): obj is GeoJSON.Point {
-  return obj.type === "Point";
-}
+import { isPoint } from "./geojson.types";
   
 describe("GeoJSONConverter", () => {
   it("converts a Point2D to GeoJSON and back", () => {
