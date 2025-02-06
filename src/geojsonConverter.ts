@@ -44,12 +44,6 @@ import {
 
 export type SupportedGeoJSON = GeoJSONPoint | LineString | GeoJSONPolygon | MultiPoint;
 
-export interface GeoJSONOptions {
-  circleMode?: "polygon" | "point-radius";
-  circleSegments?: number;
-  validate?: boolean;
-  transformCoordinates?: (pos: Position) => Position;
-}
 
 export interface ConversionResult<T> {
   geometry: T;
@@ -134,7 +128,7 @@ export class GeoJSONConverter {
           coordinates: [exterior, ...holes],
         };
       } else {
-        throw new Error(`Unsupported geometry type: ${geometry.constructor.name}`);
+        throw new Error(`Unsupported geometry type: ${(geometry as any).constructor.name}`);
       }
     } catch (err: any) {
       throw new Error(`GeoJSON conversion failed: ${err.message}`);
@@ -190,12 +184,12 @@ export class GeoJSONConverter {
 
     switch (feature.geometry.type) {
       case "Point": {
-        const { coordinates } = feature.geometry as GeoJSONPoint;
+        const { coordinates } = geo as GeoJSONPoint;
         const [x, y] = this.fromPosition(coordinates, opts);
         return { geometry: new Point2D(x, y), warnings };
       }
       case "LineString": {
-        const lineGeom = feature.geometry as LineString;
+        const lineGeom = geo as LineString;
         if (lineGeom.coordinates.length < 2) {
           throw new ValidationError("LineString must have at least two coordinates");
         }
@@ -209,7 +203,7 @@ export class GeoJSONConverter {
         };
       }
       case "Polygon": {
-        const polyGeom = feature.geometry as GeoJSONPolygon;
+        const polyGeom = geo as GeoJSONPolygon;
         if (polyGeom.coordinates.length < 1) {
           throw new ValidationError("Polygon must contain at least one ring");
         }
@@ -246,7 +240,7 @@ export class GeoJSONConverter {
         };
       }
       case "MultiPoint": {
-        const multi = feature.geometry as MultiPoint;
+        const multi = geo as MultiPoint;
         if (multi.coordinates.length < 1) {
           throw new ValidationError("MultiPoint must have at least one coordinate");
         }
