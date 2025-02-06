@@ -1,11 +1,17 @@
-import { describe, it, expect } from "vitest";
-import { Point2D, LineSegment2D, Circle2D, Polygon2D, MultiPoint2D } from "./geometry";
+import type { Position } from "geojson";
+import { describe, expect, it } from "vitest";
 import { GeoJSONConverter } from "./geojsonConverter";
-import type { Feature, FeatureCollection, Position } from "geojson";
-import { RTree } from "./geometry";
+import {
+  Circle2D,
+  LineSegment2D,
+  MultiPoint2D,
+  Point2D,
+  Polygon2D,
+  RTree,
+} from "./geometry";
 
-import { isPoint } from "./geojson.types";
-  
+import { isGeoJSONPoint, ValidationError } from "./geojson.types";
+
 describe("GeoJSONConverter", () => {
   it("converts a Point2D to GeoJSON and back", () => {
     const pt = new Point2D(1, 2);
@@ -141,6 +147,9 @@ describe("GeoJSONConverter Edge Cases", () => {
     const multiPoint = new MultiPoint2D([new Point2D(1, 1), new Point2D(2, 2)]);
     const result = GeoJSONConverter.toGeoJSON(multiPoint);
     expect(result.geometry.geometry.type).toBe("MultiPoint");
-    expect(result.geometry.geometry.coordinates).toEqual([[1, 1], [2, 2]]);
+    expect(result.geometry.geometry.coordinates).toEqual([
+      [1, 1],
+      [2, 2],
+    ]);
   });
 });

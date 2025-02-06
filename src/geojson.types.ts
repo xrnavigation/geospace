@@ -1,19 +1,18 @@
 import type {
   Feature,
   FeatureCollection,
-  Point,
-  MultiPoint,
-  LineString,
-  Polygon,
-  GeoJsonProperties,
-  Position,
   GeoJSON,
-  Geometry
+  GeoJsonProperties,
+  LineString,
+  MultiPoint,
+  Point,
+  Polygon,
+  Position,
 } from "geojson";
 
 // Branded types for validated GeoJSON
 export interface Validated<T> {
-  __brand: 'validated';
+  __brand: "validated";
   value: T;
 }
 
@@ -23,63 +22,61 @@ export type ValidatedFeatureCollection = Validated<FeatureCollection>;
 
 // More specific error types
 export class GeoJSONError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public path?: string
-  ) {
+  constructor(message: string, public code: string, public path?: string) {
     super(message);
-    this.name = 'GeoJSONError';
+    this.name = "GeoJSONError";
   }
 }
 
 export class ValidationError extends GeoJSONError {
   constructor(message: string, path?: string) {
-    super(message, 'VALIDATION_ERROR', path);
-    this.name = 'ValidationError';
+    super(message, "VALIDATION_ERROR", path);
+    this.name = "ValidationError";
   }
 }
 
 export class ConversionError extends GeoJSONError {
   constructor(message: string, path?: string) {
-    super(message, 'CONVERSION_ERROR', path);
-    this.name = 'ConversionError';
+    super(message, "CONVERSION_ERROR", path);
+    this.name = "ConversionError";
   }
 }
 
 // Type guards
 export function isGeoJSON(obj: any): obj is GeoJSON {
-  return obj && typeof obj === 'object' && 'type' in obj;
+  return obj && typeof obj === "object" && "type" in obj;
 }
 
 export function isFeature(obj: any): obj is Feature {
-  return isGeoJSON(obj) && obj.type === 'Feature';
+  return isGeoJSON(obj) && obj.type === "Feature";
 }
 
 export function isFeatureCollection(obj: any): obj is FeatureCollection {
-  return isGeoJSON(obj) && obj.type === 'FeatureCollection';
+  return isGeoJSON(obj) && obj.type === "FeatureCollection";
 }
 
-export function isPoint(obj: any): obj is Point {
-  return isGeoJSON(obj) && obj.type === 'Point';
+export function isGeoJSONPoint(obj: any): obj is Point {
+  return isGeoJSON(obj) && obj.type === "Point";
 }
 
-export function isMultiPoint(obj: any): obj is MultiPoint {
-  return isGeoJSON(obj) && obj.type === 'MultiPoint';
+export function isGeoJSONMultiPoint(obj: any): obj is MultiPoint {
+  return isGeoJSON(obj) && obj.type === "MultiPoint";
 }
 
-export function isLineString(obj: any): obj is LineString {
-  return isGeoJSON(obj) && obj.type === 'LineString';
+export function isGeoJSONLineString(obj: any): obj is LineString {
+  return isGeoJSON(obj) && obj.type === "LineString";
 }
 
-export function isPolygon(obj: any): obj is Polygon {
-  return isGeoJSON(obj) && obj.type === 'Polygon';
+export function isGeoJSONPolygon(obj: any): obj is Polygon {
+  return isGeoJSON(obj) && obj.type === "Polygon";
 }
 
-export function isPosition(obj: any): obj is Position {
-  return Array.isArray(obj) && 
-         obj.length >= 2 && 
-         obj.every(n => typeof n === 'number');
+export function isGeoJSONPosition(obj: any): obj is Position {
+  return (
+    Array.isArray(obj) &&
+    obj.length >= 2 &&
+    obj.every((n) => typeof n === "number")
+  );
 }
 
 // Validation result type

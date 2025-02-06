@@ -6,7 +6,7 @@ import {
   Polygon as GeoJSONPolygon,
   LineString,
   Position,
-  GeoJsonProperties
+  GeoJsonProperties,
 } from "geojson";
 
 import {
@@ -19,9 +19,9 @@ import {
   isFeature,
   isGeoJSONPosition,
   isGeoJSONPoint,
-  isGeoJSONLineString, 
+  isGeoJSONLineString,
   isGeoJSONPolygon,
-  isGeoJSONMultiPoint
+  isGeoJSONMultiPoint,
 } from "./geojson.types";
 
 import {
@@ -39,11 +39,14 @@ import {
   MultiPoint2D,
   RTree,
   SpatialItem,
-  getBBox
+  getBBox,
 } from "./geometry";
 
-export type SupportedGeoJSON = GeoJSONPoint | LineString | GeoJSONPolygon | MultiPoint;
-
+export type SupportedGeoJSON =
+  | GeoJSONPoint
+  | LineString
+  | GeoJSONPolygon
+  | MultiPoint;
 
 export interface ConversionResult<T> {
   geometry: T;
@@ -87,7 +90,9 @@ export class GeoJSONConverter {
       if (geometry instanceof MultiPoint2D) {
         geoJsonGeometry = {
           type: "MultiPoint",
-          coordinates: geometry.points.map((p) => this.toPosition([p.x, p.y], opts)),
+          coordinates: geometry.points.map((p) =>
+            this.toPosition([p.x, p.y], opts)
+          ),
         };
       } else if (isPoint(geometry)) {
         geoJsonGeometry = {
@@ -128,7 +133,9 @@ export class GeoJSONConverter {
           coordinates: [exterior, ...holes],
         };
       } else {
-        throw new Error(`Unsupported geometry type: ${(geometry as any).constructor.name}`);
+        throw new Error(
+          `Unsupported geometry type: ${(geometry as any).constructor.name}`
+        );
       }
     } catch (err: any) {
       throw new Error(`GeoJSON conversion failed: ${err.message}`);
@@ -155,18 +162,23 @@ export class GeoJSONConverter {
    * @param options Optional conversion options.
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
-  static fromGeoJSON(feature: Feature<SupportedGeoJSON, GeoJsonProperties>, options?: GeoJSONOptions): ConversionResult<Geometry> {
+  static fromGeoJSON(
+    feature: Feature<SupportedGeoJSON, GeoJsonProperties>,
+    options?: GeoJSONOptions
+  ): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const warnings: string[] = [];
     if (!feature.geometry) {
       throw new ValidationError("Feature has no geometry");
     }
-    
-    if (!isGeoJSONPoint(feature.geometry) && 
-        !isGeoJSONLineString(feature.geometry) && 
-        !isGeoJSONPolygon(feature.geometry) && 
-        !isGeoJSONMultiPoint(feature.geometry)) {
-      throw new ValidationError(`Unsupported GeoJSON geometry type: ${feature.geometry.type}`);
+
+    if (
+      !isGeoJSONPoint(feature.geometry) &&
+      !isGeoJSONLineString(feature.geometry) &&
+      !isGeoJSONPolygon(feature.geometry) &&
+      !isGeoJSONMultiPoint(feature.geometry)
+    ) {
+      throw new ValidationError(`Unsupported GeoJSON geometry type`);
     }
 
     if (
@@ -182,7 +194,7 @@ export class GeoJSONConverter {
       };
     }
     const geo = feature.geometry as SupportedGeoJSON;
-    
+
     switch (geo.type) {
       case "Point": {
         const { coordinates } = geo as GeoJSONPoint;
@@ -192,7 +204,9 @@ export class GeoJSONConverter {
       case "LineString": {
         const lineGeom = geo as LineString;
         if (lineGeom.coordinates.length < 2) {
-          throw new ValidationError("LineString must have at least two coordinates");
+          throw new ValidationError(
+            "LineString must have at least two coordinates"
+          );
         }
         const start = lineGeom.coordinates[0];
         const end = lineGeom.coordinates[1];
@@ -243,7 +257,9 @@ export class GeoJSONConverter {
       case "MultiPoint": {
         const multi = geo as MultiPoint;
         if (multi.coordinates.length < 1) {
-          throw new ValidationError("MultiPoint must have at least one coordinate");
+          throw new ValidationError(
+            "MultiPoint must have at least one coordinate"
+          );
         }
         const points = multi.coordinates.map((coord) => {
           const [x, y] = this.fromPosition(coord, opts);
@@ -303,9 +319,7 @@ export class GeoJSONConverter {
    * @param tree An instance of RTree containing spatial items.
    * @returns An object with 'loadGeoJSON' and 'toGeoJSON' methods.
    */
-  static enhanceRTree<
-    T extends SpatialItem
-  >(tree: RTree<T>) {
+  static enhanceRTree<T extends SpatialItem>(tree: RTree<T>) {
     return {
       loadGeoJSON(
         collection: FeatureCollection,
@@ -318,7 +332,10 @@ export class GeoJSONConverter {
         const items: T[] = [];
         for (const feature of collection.features) {
           try {
-            const result = GeoJSONConverter.fromGeoJSON(feature as Feature<SupportedGeoJSON>, options);
+            const result = GeoJSONConverter.fromGeoJSON(
+              feature as Feature<SupportedGeoJSON>,
+              options
+            );
             if (result.warnings) {
               warnings.push(...result.warnings);
             }
@@ -383,7 +400,11 @@ export class GeoJSONConverter {
     options: GeoJSONOptions
   ): Position {
     if (options.validate) {
-      if (!isGeoJSONPosition(coord) || !isFinite(coord[0]) || !isFinite(coord[1])) {
+      if (
+        !isGeoJSONPosition(coord) ||
+        !isFinite(coord[0]) ||
+        !isFinite(coord[1])
+      ) {
         throw new ValidationError("Invalid coordinates", "coordinates");
       }
     }
