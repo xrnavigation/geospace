@@ -95,7 +95,7 @@ export class GeoJSONConverter {
           type: "MultiPoint",
           coordinates: geometry.points.map((p) => this.toPosition([p.x, p.y], opts)),
         };
-      } else if (isGeoJSONPoint(geometry)) {
+      } else if (isPoint(geometry)) {
         geoJsonGeometry = {
           type: "Point",
           coordinates: this.toPosition([geometry.x, geometry.y], opts),
@@ -121,7 +121,7 @@ export class GeoJSONConverter {
           };
           warnings.push("Circle converted to point with radius property");
         }
-      } else if (isGeoJSONPolygon(geometry)) {
+      } else if (isPolygon(geometry)) {
         const exterior = this.closeRing(
           geometry.exterior.map((p) => this.toPosition([p.x, p.y], opts))
         );
