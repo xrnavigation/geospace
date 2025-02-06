@@ -162,10 +162,14 @@ export class GeoJSONConverter {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const warnings: string[] = [];
     if (!feature.geometry) {
-      throw new Error("Feature has no geometry");
+      throw new ValidationError("Feature has no geometry");
     }
-    if (!["Point", "LineString", "Polygon", "MultiPoint"].includes(feature.geometry.type)) {
-      throw new Error(`Unsupported GeoJSON geometry type: ${feature.geometry.type}`);
+    
+    if (!isPoint(feature.geometry) && 
+        !isLineString(feature.geometry) && 
+        !isPolygon(feature.geometry) && 
+        !isMultiPoint(feature.geometry)) {
+      throw new ValidationError(`Unsupported GeoJSON geometry type: ${feature.geometry.type}`);
     }
 
     if (
@@ -190,7 +194,7 @@ export class GeoJSONConverter {
       case "LineString": {
         const lineGeom = feature.geometry as LineString;
         if (lineGeom.coordinates.length < 2) {
-          throw new Error("LineString must have at least two coordinates");
+          throw new ValidationError("LineString must have at least two coordinates");
         }
         const start = lineGeom.coordinates[0];
         const end = lineGeom.coordinates[1];
@@ -204,7 +208,7 @@ export class GeoJSONConverter {
       case "Polygon": {
         const polyGeom = feature.geometry as GeoJSONPolygon;
         if (polyGeom.coordinates.length < 1) {
-          throw new Error("Polygon must contain at least one ring");
+          throw new ValidationError("Polygon must contain at least one ring");
         }
         const exteriorRing = polyGeom.coordinates[0];
         let exterior = exteriorRing.slice();
@@ -241,7 +245,7 @@ export class GeoJSONConverter {
       case "MultiPoint": {
         const multi = feature.geometry as MultiPoint;
         if (multi.coordinates.length < 1) {
-          throw new Error("MultiPoint must have at least one coordinate");
+          throw new ValidationError("MultiPoint must have at least one coordinate");
         }
         const points = multi.coordinates.map((coord) => {
           const [x, y] = this.fromPosition(coord, opts);
@@ -379,7 +383,7 @@ export class GeoJSONConverter {
   ): Position {
     if (options.validate) {
       if (!isFinite(coord[0]) || !isFinite(coord[1])) {
-        throw new Error("Invalid coordinates");
+        throw new ValidationError("Invalid coordinates", "coordinates");
       }
     }
     return options.transformCoordinates
@@ -393,7 +397,7 @@ export class GeoJSONConverter {
   ): [number, number] {
     if (options.validate) {
       if (pos.length < 2 || !isFinite(pos[0]) || !isFinite(pos[1])) {
-        throw new Error("Invalid position");
+        throw new ValidationError("Invalid position", "position");
       }
     }
     return [pos[0], pos[1]];

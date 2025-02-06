@@ -123,7 +123,7 @@ describe("GeoJSONConverter Edge Cases", () => {
   it("throws error when feature has no geometry", () => {
     expect(() => {
       GeoJSONConverter.fromGeoJSON({ type: "Feature", properties: {} } as any);
-    }).toThrow("Feature has no geometry");
+    }).toThrow(ValidationError);
   });
 
   it("throws error for unsupported GeoJSON geometry type", () => {
@@ -134,7 +134,7 @@ describe("GeoJSONConverter Edge Cases", () => {
     };
     expect(() => {
       GeoJSONConverter.fromGeoJSON(unsupportedFeature as any);
-    }).toThrow("Unsupported GeoJSON geometry type");
+    }).toThrow(ValidationError);
   });
 
   it("handles MultiPoint conversion", () => {
