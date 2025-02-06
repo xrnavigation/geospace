@@ -12,7 +12,7 @@ describe("GeoJSONConverter", () => {
   it("converts a Point2D to GeoJSON and back", () => {
     const pt = new Point2D(1, 2);
     const conv = GeoJSONConverter.toGeoJSON(pt);
-    expect(isGeoJSONPoint(conv.geometry)).toBe(true);
+    expect(isGeoJSONPoint(conv.geometry.geometry)).toBe(true);
     expect(conv.geometry.geometry.coordinates).toEqual([1, 2]);
 
     const reconv = GeoJSONConverter.fromGeoJSON(conv.geometry);
