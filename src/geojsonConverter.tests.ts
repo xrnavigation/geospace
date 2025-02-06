@@ -4,11 +4,15 @@ import { GeoJSONConverter } from "./geojsonConverter";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import { RTree } from "./geometry";
 
+function isGeoJSONPoint(obj: any): obj is GeoJSON.Point {
+  return obj.type === "Point";
+}
+  
 describe("GeoJSONConverter", () => {
   it("converts a Point2D to GeoJSON and back", () => {
     const pt = new Point2D(1, 2);
     const conv = GeoJSONConverter.toGeoJSON(pt);
-    expect(conv.geometry.geometry.type).toBe("Point");
+    expect(isGeoJSONPoint(conv.geometry)).toBe(true);
     expect(conv.geometry.geometry.coordinates).toEqual([1, 2]);
 
     const reconv = GeoJSONConverter.fromGeoJSON(conv.geometry);

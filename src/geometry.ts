@@ -46,7 +46,7 @@ export interface Point {
  * };
  * ```
  */
-export interface Circle {
+export interface Circle extends Point, Bounded {
   /** Center point of the circle */
   readonly center: Point;
   /** Radius of the circle (must be positive) */
@@ -65,7 +65,7 @@ export interface Circle {
  * };
  * ```
  */
-export interface LineSegment {
+export interface LineSegment extends Bounded {
   /** Starting point of the line segment */
   readonly start: Point;
   /** Ending point of the line segment */
@@ -248,14 +248,24 @@ export interface RaycastResult {
 }
 
 /** Union type of all geometry types */
-export type Geometry = Point2D | LineSegment2D | Circle2D | Polygon2D | MultiPoint2D;
+export type Geometry =
+  | Point2D
+  | LineSegment2D
+  | Circle2D
+  | Polygon2D
+  | MultiPoint2D;
 
 export function getBBox(geom: Geometry): BoundingBox {
   if (geom && typeof (geom as any).getBoundingBox === "function") {
     return (geom as any).getBoundingBox();
   }
   if ("x" in geom && "y" in geom) {
-    return { minX: (geom as any).x!, minY: (geom as any).y!, maxX: (geom as any).x!, maxY: (geom as any).y! };
+    return {
+      minX: (geom as any).x!,
+      minY: (geom as any).y!,
+      maxX: (geom as any).x!,
+      maxY: (geom as any).y!,
+    };
   }
   if ("start" in geom && "end" in geom) {
     const { start, end } = geom as any;
@@ -276,7 +286,10 @@ export function getBBox(geom: Geometry): BoundingBox {
     };
   }
   if ("exterior" in geom && Array.isArray((geom as any).exterior)) {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     for (const p of (geom as any).exterior) {
       if (p.x < minX) minX = p.x;
       if (p.y < minY) minY = p.y;
@@ -366,7 +379,10 @@ export class MultiPoint2D implements Bounded {
     }
   }
   getBoundingBox(): BoundingBox {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     for (const p of this.points) {
       if (p.x < minX) minX = p.x;
       if (p.y < minY) minY = p.y;
@@ -383,8 +399,12 @@ export class Circle2D implements Circle, Bounded {
       throw new Error("Circle radius must be positive");
     }
   }
-  get x(): number { return this.center.x; }
-  get y(): number { return this.center.y; }
+  get x(): number {
+    return this.center.x;
+  }
+  get y(): number {
+    return this.center.y;
+  }
 
   /**
    * Gets the bounding box of the circle.
@@ -596,7 +616,7 @@ export class AffineTransform implements Transform {
       ) as unknown as T;
     } else if (isCircle(geometry)) {
       const cx = transformPoint(geometry.center, this.m);
-      
+
       // Check uniform scale by examining the matrix's x-scaling vs y-scaling
       const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
       const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
@@ -707,7 +727,8 @@ export class GeometryEngine implements GeometryOperations {
     for (let i = 0; i < vertices.length; i++) {
       const a = vertices[i];
       const b = vertices[(i + 1) % vertices.length];
-      const dist = this.pointToLineDistance(p, { start: a, end: b });
+      const line = new LineSegment2D(a, b);
+      const dist = this.pointToLineDistance(p, line);
       if (dist < minDist) minDist = dist;
     }
     return minDist;
@@ -733,10 +754,10 @@ export class GeometryEngine implements GeometryOperations {
     minDist = Math.min(d1, d2);
     const vertices = poly.exterior;
     for (let i = 0; i < vertices.length; i++) {
-      const edge: LineSegment = {
-        start: vertices[i],
-        end: vertices[(i + 1) % vertices.length],
-      };
+      const edge: LineSegment = new LineSegment2D(
+        vertices[i],
+        vertices[(i + 1) % vertices.length]
+      );
       const d = this.lineToLineDistance(l, edge);
       if (d < minDist) minDist = d;
     }
@@ -752,10 +773,10 @@ export class GeometryEngine implements GeometryOperations {
     let minDist = Infinity;
     const vertices = poly.exterior;
     for (let i = 0; i < vertices.length; i++) {
-      const edge: LineSegment = {
-        start: vertices[i],
-        end: vertices[(i + 1) % vertices.length],
-      };
+      const edge: LineSegment = new LineSegment2D(
+        vertices[i],
+        vertices[(i + 1) % vertices.length]
+      );
       const d = this.pointToLineDistance(c.center, edge) - c.radius;
       if (d < minDist) minDist = d;
     }
@@ -770,12 +791,12 @@ export class GeometryEngine implements GeometryOperations {
     for (let i = 0; i < a.exterior.length; i++) {
       const a1 = a.exterior[i];
       const a2 = a.exterior[(i + 1) % a.exterior.length];
-      const edgeA: LineSegment = { start: a1, end: a2 };
+      const edgeA: LineSegment = new LineSegment2D(a1, a2);
 
       for (let j = 0; j < b.exterior.length; j++) {
         const b1 = b.exterior[j];
         const b2 = b.exterior[(j + 1) % b.exterior.length];
-        const edgeB: LineSegment = { start: b1, end: b2 };
+        const edgeB: LineSegment = new LineSegment2D(b1, b2);
 
         const d = this.lineToLineDistance(edgeA, edgeB);
         minDist = Math.min(minDist, d);
@@ -856,10 +877,10 @@ export class GeometryEngine implements GeometryOperations {
       if (isPolygon(b)) {
         if (pointInPolygon(a.start, b) || pointInPolygon(a.end, b)) return true;
         for (let i = 0; i < b.exterior.length; i++) {
-          const edge: LineSegment = {
-            start: b.exterior[i],
-            end: b.exterior[(i + 1) % b.exterior.length],
-          };
+          const edge: LineSegment = new LineSegment2D(
+            b.exterior[i],
+            b.exterior[(i + 1) % b.exterior.length]
+          );
           if (segmentsIntersect(a, edge)) return true;
         }
         return false;
@@ -881,10 +902,10 @@ export class GeometryEngine implements GeometryOperations {
       if (isPolygon(b)) {
         if (pointInPolygon(a.center, b)) return true;
         for (let i = 0; i < b.exterior.length; i++) {
-          const edge: LineSegment = {
-            start: b.exterior[i],
-            end: b.exterior[(i + 1) % b.exterior.length],
-          };
+          const edge: LineSegment = new LineSegment2D(
+            b.exterior[i],
+            b.exterior[(i + 1) % b.exterior.length]
+          );
           if (
             this.pointToCircleDistance(
               nearestPointOnSegment(a.center, edge),
@@ -911,15 +932,15 @@ export class GeometryEngine implements GeometryOperations {
         }
         // Check if any edges intersect
         for (let i = 0; i < a.exterior.length; i++) {
-          const edgeA: LineSegment = {
-            start: a.exterior[i],
-            end: a.exterior[(i + 1) % a.exterior.length],
-          };
+          const edgeA: LineSegment = new LineSegment2D(
+            a.exterior[i],
+            a.exterior[(i + 1) % a.exterior.length]
+          );
           for (let j = 0; j < b.exterior.length; j++) {
-            const edgeB: LineSegment = {
-              start: b.exterior[j],
-              end: b.exterior[(j + 1) % b.exterior.length],
-            };
+            const edgeB: LineSegment = new LineSegment2D(
+              b.exterior[j],
+              b.exterior[(j + 1) % b.exterior.length]
+            );
             if (segmentsIntersect(edgeA, edgeB)) return true;
           }
         }
@@ -972,10 +993,10 @@ export class GeometryEngine implements GeometryOperations {
           return false;
         const vertices = container.exterior;
         for (let i = 0; i < vertices.length; i++) {
-          const edge: LineSegment = {
-            start: vertices[i],
-            end: vertices[(i + 1) % vertices.length],
-          };
+          const edge: LineSegment = new LineSegment2D(
+            vertices[i],
+            vertices[(i + 1) % vertices.length]
+          );
           if (segmentsIntersect(contained, edge)) {
             if (
               !pointsEqual(contained.start, edge.start) &&
@@ -1171,10 +1192,10 @@ function pointInPolygon(p: Point, poly: Polygon): boolean {
 function onPolygonBoundary(p: Point, poly: Polygon): boolean {
   const vertices = poly.exterior;
   for (let i = 0; i < vertices.length; i++) {
-    const edge: LineSegment = {
-      start: vertices[i],
-      end: vertices[(i + 1) % vertices.length],
-    };
+    const edge: LineSegment = new LineSegment2D(
+      vertices[i],
+      vertices[(i + 1) % vertices.length]
+    );
     if (pointOnSegment(p, edge)) return true;
   }
   return false;
@@ -1207,7 +1228,7 @@ function segmentsIntersect(a: LineSegment, b: LineSegment): boolean {
 function collinearOverlap(a: LineSegment, b: LineSegment): boolean {
   // Make sure they're collinear first
   if (!collinear(a.start, a.end, b.start)) return false;
-  
+
   // Then see if their bounding boxes overlap
   const A = {
     minX: Math.min(a.start.x, a.end.x),
@@ -1883,7 +1904,7 @@ export function rayPolygonIntersection(ray: Ray, poly: Polygon): Point | null {
   for (let i = 0; i < poly.exterior.length; i++) {
     const a = poly.exterior[i];
     const b = poly.exterior[(i + 1) % poly.exterior.length];
-    const inter = raySegmentIntersection(ray, { start: a, end: b });
+    const inter = raySegmentIntersection(ray, new LineSegment2D(a, b));
     if (inter) {
       const t = Math.sqrt(
         (inter.x - ray.origin.x) ** 2 + (inter.y - ray.origin.y) ** 2
