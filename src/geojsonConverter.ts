@@ -11,14 +11,17 @@ import {
 
 import {
   GeoJSONOptions,
-  ValidationOptions,
   ValidationResult,
   ValidatedFeature,
   ValidatedFeatureCollection,
   ValidationError,
   ConversionError,
   isFeature,
-  isPosition
+  isPosition,
+  isPoint,
+  isLineString, 
+  isPolygon,
+  isMultiPoint
 } from "./geojson.types";
 
 import {
