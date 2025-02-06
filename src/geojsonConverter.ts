@@ -385,7 +385,7 @@ export class GeoJSONConverter {
     options: GeoJSONOptions
   ): Position {
     if (options.validate) {
-      if (!isFinite(coord[0]) || !isFinite(coord[1])) {
+      if (!isGeoJSONPosition(coord) || !isFinite(coord[0]) || !isFinite(coord[1])) {
         throw new ValidationError("Invalid coordinates", "coordinates");
       }
     }
@@ -399,7 +399,7 @@ export class GeoJSONConverter {
     options: GeoJSONOptions
   ): [number, number] {
     if (options.validate) {
-      if (pos.length < 2 || !isFinite(pos[0]) || !isFinite(pos[1])) {
+      if (!isGeoJSONPosition(pos) || !isFinite(pos[0]) || !isFinite(pos[1])) {
         throw new ValidationError("Invalid position", "position");
       }
     }
