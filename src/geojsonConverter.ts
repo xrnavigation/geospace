@@ -255,7 +255,7 @@ export class GeoJSONConverter {
         };
       }
       default: {
-        throw new ValidationError(`Unsupported GeoJSON geometry type: ${(geo as any).type}`);
+        throw new ValidationError("Unsupported GeoJSON geometry type");
       }
     }
   }
