@@ -384,6 +384,13 @@ describe("AffineTransform", () => {
     expect(newPolygon.exterior[2].x).toBeCloseTo(8, 10);
     expect(newPolygon.exterior[2].y).toBeCloseTo(6, 10);
   });
+
+  it("throws error for non-uniform scaling on circle", () => {
+    const circle = new Circle2D({ x: 0, y: 0 }, 5);
+    // Create a transform with non-uniform scaling factors: scaleX=2, scaleY=3.
+    const nonUniform = new AffineTransform([2, 0, 0, 3, 0, 0]);
+    expect(() => nonUniform.apply(circle)).toThrow("Cannot apply non-uniform scaling to circles");
+  });
 });
 
 describe("Ray Intersection", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Point2D, LineSegment2D, Circle2D, Polygon2D } from "./geometry";
+import { Point2D, LineSegment2D, Circle2D, Polygon2D, MultiPoint2D } from "./geometry";
 import { GeoJSONConverter } from "./geojsonConverter";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import { RTree } from "./geometry";
@@ -118,5 +118,31 @@ describe("GeoJSONConverter with RTree", () => {
     const featureC = fc.features.find((f) => f.id === "2");
     expect(featureC?.geometry.type).toBe("Point");
     expect(featureC?.properties?.radius).toBe(2);
+  });
+});
+
+describe("GeoJSONConverter Edge Cases", () => {
+  it("throws error when feature has no geometry", () => {
+    expect(() => {
+      GeoJSONConverter.fromGeoJSON({ type: "Feature", properties: {} } as any);
+    }).toThrow("Feature has no geometry");
+  });
+
+  it("throws error for unsupported GeoJSON geometry type", () => {
+    const unsupportedFeature = {
+      type: "Feature",
+      geometry: { type: "MultiLineString", coordinates: [] },
+      properties: {},
+    };
+    expect(() => {
+      GeoJSONConverter.fromGeoJSON(unsupportedFeature as any);
+    }).toThrow("Unsupported GeoJSON geometry type");
+  });
+
+  it("handles MultiPoint conversion", () => {
+    const multiPoint = new MultiPoint2D([new Point2D(1, 1), new Point2D(2, 2)]);
+    const result = GeoJSONConverter.toGeoJSON(multiPoint);
+    expect(result.geometry.geometry.type).toBe("MultiPoint");
+    expect(result.geometry.geometry.coordinates).toEqual([[1, 1], [2, 2]]);
   });
 });
