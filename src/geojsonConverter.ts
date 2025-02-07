@@ -416,7 +416,6 @@ export class GeoJSONBuilder {
   private options: GeoJSONOptions = {
     circleMode: 'polygon',
     circleSegments: 64,
-    validate: true,
   };
 
   constructor(geometry: Geometry) {
