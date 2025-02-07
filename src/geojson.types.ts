@@ -87,17 +87,11 @@ export interface ValidationResult {
 
 // Options interfaces
 export interface GeoJSONOptions {
-  circleMode?: "polygon" | "point-radius";
-  circleSegments?: number;
-  validate?: boolean;
-  transformCoordinates?: (pos: Position) => Position;
+  readonly circleMode?: "polygon" | "point-radius";
+  readonly circleSegments?: number;
+  readonly transformCoordinates?: (pos: Position) => Position;
 }
 
-export interface ValidationOptions {
-  strict?: boolean;
-  maxDecimalDigits?: number;
-  requireValid?: boolean;
-}
 
 // Metadata interface
 export interface GeoJSONMetadata<T = GeoJsonProperties> {

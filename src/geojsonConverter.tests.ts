@@ -12,43 +12,40 @@ import {
 
 import { isGeoJSONPoint, ValidationError } from "./geojson.types";
 
-describe("GeoJSONConverter", () => {
+describe("GeoJSON", () => {
   it("converts a Point2D to GeoJSON and back", () => {
     const pt = new Point2D(1, 2);
-    const conv = GeoJSONConverter.toGeoJSON(pt);
-    expect(isGeoJSONPoint(conv.geometry.geometry)).toBe(true);
-    expect(conv.geometry.geometry.coordinates).toEqual([1, 2]);
+    const conv = GeoJSON.from(pt).build();
+    expect(isGeoJSONPoint(conv.value.geometry)).toBe(true);
+    expect(conv.value.geometry.coordinates).toEqual([1, 2]);
 
-    const reconv = GeoJSONConverter.fromGeoJSON(conv.geometry);
-    expect(reconv.geometry.x).toBeCloseTo(1);
-    expect(reconv.geometry.y).toBeCloseTo(2);
+    const reconv = GeoJSON.to(conv.value);
+    expect(reconv.value.x).toBeCloseTo(1);
+    expect(reconv.value.y).toBeCloseTo(2);
   });
 
   it("converts a LineSegment2D to GeoJSON and back", () => {
     const line = new LineSegment2D({ x: 0, y: 0 }, { x: 3, y: 4 });
-    const conv = GeoJSONConverter.toGeoJSON(line);
-    expect(conv.geometry.geometry.type).toBe("LineString");
-    expect(conv.geometry.geometry.coordinates[0]).toEqual([0, 0]);
-    expect(conv.geometry.geometry.coordinates[1]).toEqual([3, 4]);
+    const conv = GeoJSON.from(line).build();
+    expect(conv.value.geometry.type).toBe("LineString");
+    expect(conv.value.geometry.coordinates[0]).toEqual([0, 0]);
+    expect(conv.value.geometry.coordinates[1]).toEqual([3, 4]);
 
-    const reconv = GeoJSONConverter.fromGeoJSON(conv.geometry);
-    expect(reconv.geometry.start.x).toBeCloseTo(0);
-    expect(reconv.geometry.start.y).toBeCloseTo(0);
-    expect(reconv.geometry.end.x).toBeCloseTo(3);
-    expect(reconv.geometry.end.y).toBeCloseTo(4);
+    const reconv = GeoJSON.to(conv.value);
+    expect(reconv.value.start.x).toBeCloseTo(0);
+    expect(reconv.value.start.y).toBeCloseTo(0);
+    expect(reconv.value.end.x).toBeCloseTo(3);
+    expect(reconv.value.end.y).toBeCloseTo(4);
   });
 
   it("converts a Circle2D to GeoJSON (polygon mode) and back", () => {
     const circle = new Circle2D({ x: 5, y: 5 }, 10);
-    const conv = GeoJSONConverter.toGeoJSON(circle, {
-      circleMode: "polygon",
-      circleSegments: 32,
-    });
-    expect(conv.geometry.geometry.type).toBe("Polygon");
-    expect(conv.geometry.geometry.coordinates[0].length).toBe(33);
+    const conv = GeoJSON.from(circle).build({ circleMode: "polygon", circleSegments: 32 });
+    expect(conv.value.geometry.type).toBe("Polygon");
+    expect(conv.value.geometry.coordinates[0].length).toBe(33);
 
-    const reconv = GeoJSONConverter.fromGeoJSON(conv.geometry);
-    expect(reconv.geometry.exterior.length).toBeGreaterThanOrEqual(3);
+    const reconv = GeoJSON.to(conv.value);
+    expect(reconv.value.exterior.length).toBeGreaterThanOrEqual(3);
   });
 
   it("converts a Polygon2D with holes to GeoJSON and back", () => {
@@ -65,44 +62,40 @@ describe("GeoJSONConverter", () => {
       { x: 3, y: 7 },
     ];
     const polygon = new Polygon2D(exterior, [hole]);
-    const conv = GeoJSONConverter.toGeoJSON(polygon);
-    expect(conv.geometry.geometry.type).toBe("Polygon");
-    expect(conv.geometry.geometry.coordinates[0].length).toBe(5);
-    expect(conv.geometry.geometry.coordinates[1].length).toBe(5);
+    const conv = GeoJSON.from(polygon).build();
+    expect(conv.value.geometry.type).toBe("Polygon");
+    expect(conv.value.geometry.coordinates[0].length).toBe(5);
+    expect(conv.value.geometry.coordinates[1].length).toBe(5);
 
-    const reconv = GeoJSONConverter.fromGeoJSON(conv.geometry);
-    expect(reconv.geometry.exterior.length).toBe(4);
-    expect(reconv.geometry.holes?.[0].length).toBe(4);
+    const reconv = GeoJSON.to(conv.value);
+    expect(reconv.value.exterior.length).toBe(4);
+    expect(reconv.value.holes?.[0].length).toBe(4);
   });
 
   it("supports custom coordinate transformation", () => {
     const pt = new Point2D(1, 1);
     const transform = (pos: Position): Position => [pos[0] * 10, pos[1] * 10];
-    const conv = GeoJSONConverter.toGeoJSON(pt, {
-      transformCoordinates: transform,
-    });
-    expect(conv.geometry.geometry.coordinates).toEqual([10, 10]);
+    const conv = GeoJSON.from(pt).build({ transformCoordinates: transform });
+    expect(conv.value.geometry.coordinates).toEqual([10, 10]);
 
-    const reconv = GeoJSONConverter.fromGeoJSON(conv.geometry, {
-      transformCoordinates: transform,
-    });
-    expect(reconv.geometry.x).toBeCloseTo(10);
-    expect(reconv.geometry.y).toBeCloseTo(10);
+    const reconv = GeoJSON.to(conv.value, { transformCoordinates: transform });
+    expect(reconv.value.x).toBeCloseTo(10);
+    expect(reconv.value.y).toBeCloseTo(10);
   });
 });
 describe("GeoJSON Fluent API Builder", () => {
   it("converts a Point2D using the fluent API", () => {
     const pt = new Point2D(1, 2);
-    const result = GeoJSON.from(pt).validate().convert();
-    expect(result.geometry.geometry.type).toBe("Point");
-    expect(result.geometry.geometry.coordinates).toEqual([1, 2]);
+    const result = GeoJSON.from(pt).build();
+    expect(result.value.geometry.type).toBe("Point");
+    expect(result.value.geometry.coordinates).toEqual([1, 2]);
   });
   
   it("converts a Circle2D using fluent API with point radius", () => {
     const circle = new Circle2D({ x: 5, y: 5 }, 10);
-    const result = GeoJSON.from(circle).withCircleAsPointRadius().convert();
-    expect(result.geometry.geometry.type).toBe("Point");
-    expect(result.geometry.properties?.radius).toBe(10);
+    const result = GeoJSON.from(circle).withCircleAsPointRadius().build();
+    expect(result.value.geometry.type).toBe("Point");
+    expect(result.value.properties?.radius).toBe(10);
   });
 });
 

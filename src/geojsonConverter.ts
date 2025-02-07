@@ -49,8 +49,8 @@ export type SupportedGeoJSON =
   | MultiPoint;
 
 export interface ConversionResult<T> {
-  geometry: T;
-  warnings?: string[];
+  value: T;
+  warnings: string[];
 }
 
 /**
@@ -65,11 +65,10 @@ export interface ConversionResult<T> {
  *
  * GeoJSONOptions may be supplied to control conversion behavior (e.g., circleMode and coordinate transformations).
  */
-export class GeoJSONConverter {
-  private static readonly DEFAULT_OPTIONS: GeoJSONOptions = {
+export class GeoJSONCore {
+  private static readonly DEFAULT_OPTIONS: Readonly<GeoJSONOptions> = {
     circleMode: "polygon",
     circleSegments: 64,
-    validate: true,
   };
 
   /**
@@ -153,7 +152,7 @@ export class GeoJSONConverter {
         geometryType: "Circle",
       };
     }
-    return { geometry: feature, warnings };
+    return { value: feature, warnings };
   }
 
   /**
@@ -189,7 +188,7 @@ export class GeoJSONConverter {
       const { coordinates } = feature.geometry as GeoJSONPoint;
       const [x, y] = this.fromPosition(coordinates, opts);
       return {
-        geometry: new Circle2D({ x, y }, feature.properties.radius),
+        value: new Circle2D({ x, y }, feature.properties.radius),
         warnings,
       };
     }
@@ -199,7 +198,7 @@ export class GeoJSONConverter {
       case "Point": {
         const { coordinates } = geo as GeoJSONPoint;
         const [x, y] = this.fromPosition(coordinates, opts);
-        return { geometry: new Point2D(x, y), warnings };
+        return { value: new Point2D(x, y), warnings };
       }
       case "LineString": {
         const lineGeom = geo as LineString;
@@ -213,7 +212,7 @@ export class GeoJSONConverter {
         const [x1, y1] = this.fromPosition(start, opts);
         const [x2, y2] = this.fromPosition(end, opts);
         return {
-          geometry: new LineSegment2D({ x: x1, y: y1 }, { x: x2, y: y2 }),
+          value: new LineSegment2D({ x: x1, y: y1 }, { x: x2, y: y2 }),
           warnings,
         };
       }
@@ -250,7 +249,7 @@ export class GeoJSONConverter {
           });
         });
         return {
-          geometry: new Polygon2D(exteriorPoints, holes),
+          value: new Polygon2D(exteriorPoints, holes),
           warnings,
         };
       }
@@ -266,7 +265,7 @@ export class GeoJSONConverter {
           return new Point2D(x, y);
         });
         return {
-          geometry: new MultiPoint2D(points),
+          value: new MultiPoint2D(points),
           warnings,
         };
       }
@@ -306,7 +305,7 @@ export class GeoJSONConverter {
       return feature;
     });
     return {
-      geometry: {
+      value: {
         type: "FeatureCollection",
         features,
       },
@@ -354,7 +353,7 @@ export class GeoJSONConverter {
           }
         }
         tree.bulkLoad(items);
-        return { geometry: undefined, warnings };
+        return { value: undefined, warnings };
       },
       toGeoJSON(options?: GeoJSONOptions): ConversionResult<FeatureCollection> {
         const items = tree.search({
@@ -399,15 +398,6 @@ export class GeoJSONConverter {
     coord: [number, number],
     options: GeoJSONOptions
   ): Position {
-    if (options.validate) {
-      if (
-        !isGeoJSONPosition(coord) ||
-        !isFinite(coord[0]) ||
-        !isFinite(coord[1])
-      ) {
-        throw new ValidationError("Invalid coordinates", "coordinates");
-      }
-    }
     return options.transformCoordinates
       ? (options.transformCoordinates(coord) as Position)
       : coord;
@@ -417,11 +407,6 @@ export class GeoJSONConverter {
     pos: Position,
     options: GeoJSONOptions
   ): [number, number] {
-    if (options.validate) {
-      if (!isGeoJSONPosition(pos) || !isFinite(pos[0]) || !isFinite(pos[1])) {
-        throw new ValidationError("Invalid position", "position");
-      }
-    }
     return [pos[0], pos[1]];
   }
 }
@@ -453,23 +438,14 @@ export class GeoJSONBuilder {
     return this;
   }
 
-  validate(): this {
-    this.options.validate = true;
-    return this;
-  }
-
-  noValidate(): this {
-    this.options.validate = false;
-    return this;
-  }
 
   withCoordinateTransformation(transform: (pos: Position) => Position): this {
     this.options.transformCoordinates = transform;
     return this;
   }
 
-  convert(): ConversionResult<Feature<SupportedGeoJSON>> {
-    return GeoJSONConverter.toGeoJSON(this.geometry, this.options);
+  build(): ConversionResult<Feature<SupportedGeoJSON>> {
+    return GeoJSONCore.toGeoJSON(this.geometry, this.options);
   }
 }
 
