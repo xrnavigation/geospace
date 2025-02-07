@@ -1,6 +1,6 @@
 import type { Position } from "geojson";
 import { describe, expect, it } from "vitest";
-import { GeoJSONConverter } from "./geojsonConverter";
+import { GeoJSONConverter, GeoJSON } from "./geojsonConverter";
 import {
   Circle2D,
   LineSegment2D,
@@ -88,6 +88,21 @@ describe("GeoJSONConverter", () => {
     });
     expect(reconv.geometry.x).toBeCloseTo(10);
     expect(reconv.geometry.y).toBeCloseTo(10);
+  });
+});
+describe("GeoJSON Fluent API Builder", () => {
+  it("converts a Point2D using the fluent API", () => {
+    const pt = new Point2D(1, 2);
+    const result = GeoJSON.from(pt).validate().convert();
+    expect(result.geometry.geometry.type).toBe("Point");
+    expect(result.geometry.geometry.coordinates).toEqual([1, 2]);
+  });
+  
+  it("converts a Circle2D using fluent API with point radius", () => {
+    const circle = new Circle2D({ x: 5, y: 5 }, 10);
+    const result = GeoJSON.from(circle).withCircleAsPointRadius().convert();
+    expect(result.geometry.geometry.type).toBe("Point");
+    expect(result.geometry.properties?.radius).toBe(10);
   });
 });
 

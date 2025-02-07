@@ -425,3 +425,56 @@ export class GeoJSONConverter {
     return [pos[0], pos[1]];
   }
 }
+
+export class GeoJSONBuilder {
+  private geometry: Geometry;
+  private options: GeoJSONOptions = {
+    circleMode: 'polygon',
+    circleSegments: 64,
+    validate: true,
+  };
+
+  constructor(geometry: Geometry) {
+    this.geometry = geometry;
+  }
+
+  withCircleAsPolygon(): this {
+    this.options.circleMode = 'polygon';
+    return this;
+  }
+
+  withCircleAsPointRadius(): this {
+    this.options.circleMode = 'point-radius';
+    return this;
+  }
+
+  withCircleSegments(segments: number): this {
+    this.options.circleSegments = segments;
+    return this;
+  }
+
+  validate(): this {
+    this.options.validate = true;
+    return this;
+  }
+
+  noValidate(): this {
+    this.options.validate = false;
+    return this;
+  }
+
+  withCoordinateTransformation(transform: (pos: Position) => Position): this {
+    this.options.transformCoordinates = transform;
+    return this;
+  }
+
+  convert(): ConversionResult<Feature<SupportedGeoJSON>> {
+    return GeoJSONConverter.toGeoJSON(this.geometry, this.options);
+  }
+}
+
+export class GeoJSON {
+  static from(geometry: Geometry): GeoJSONBuilder {
+    return new GeoJSONBuilder(geometry);
+  }
+}
