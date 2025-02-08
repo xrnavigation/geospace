@@ -296,7 +296,7 @@ export class GeoJSONCore {
       if (result.warnings) {
         warnings.push(...result.warnings.map((w) => `Item ${item.id}: ${w}`));
       }
-      const feature = result.geometry;
+      const feature = result.value;
       feature.id = item.id;
       feature.properties = {
         ...feature.properties,
