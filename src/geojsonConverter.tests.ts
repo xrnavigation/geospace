@@ -119,9 +119,9 @@ describe("GeoJSONConverter with RTree", () => {
     const tree = new RTree<(typeof items)[0]>();
     tree.bulkLoad(items);
 
-    const geoTree = GeoJSONConverter.enhanceRTree(tree);
+    const geoTree = GeoJSON.enhanceRTree(tree);
     const exportResult = geoTree.toGeoJSON({ circleMode: "point-radius" });
-    const fc = exportResult.geometry;
+    const fc = exportResult.value;
 
     expect(fc.type).toBe("FeatureCollection");
     expect(fc.features.length).toBe(2);
@@ -136,7 +136,7 @@ describe("GeoJSONConverter with RTree", () => {
 describe("GeoJSONConverter Edge Cases", () => {
   it("throws error when feature has no geometry", () => {
     expect(() => {
-      GeoJSONConverter.fromGeoJSON({ type: "Feature", properties: {} } as any);
+      GeoJSON.to({ type: "Feature", properties: {} } as any);
     }).toThrow(ValidationError);
   });
 
@@ -147,15 +147,15 @@ describe("GeoJSONConverter Edge Cases", () => {
       properties: {},
     };
     expect(() => {
-      GeoJSONConverter.fromGeoJSON(unsupportedFeature as any);
+      GeoJSON.to(unsupportedFeature as any);
     }).toThrow(ValidationError);
   });
 
   it("handles MultiPoint conversion", () => {
     const multiPoint = new MultiPoint2D([new Point2D(1, 1), new Point2D(2, 2)]);
-    const result = GeoJSONConverter.toGeoJSON(multiPoint);
-    expect(result.geometry.geometry.type).toBe("MultiPoint");
-    expect(result.geometry.geometry.coordinates).toEqual([
+    const result = GeoJSON.from(multiPoint).build();
+    expect(result.value.geometry.type).toBe("MultiPoint");
+    expect(result.value.geometry.coordinates).toEqual([
       [1, 1],
       [2, 2],
     ]);

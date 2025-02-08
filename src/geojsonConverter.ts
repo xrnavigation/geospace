@@ -443,13 +443,22 @@ export class GeoJSONBuilder {
     return this;
   }
 
-  build(): ConversionResult<Feature<SupportedGeoJSON>> {
-    return GeoJSONCore.toGeoJSON(this.geometry, this.options);
+  build(options?: GeoJSONOptions): ConversionResult<Feature<SupportedGeoJSON>> {
+    return GeoJSONCore.toGeoJSON(this.geometry, { ...this.options, ...options });
   }
 }
 
 export class GeoJSON {
   static from(geometry: Geometry): GeoJSONBuilder {
     return new GeoJSONBuilder(geometry);
+  }
+  static to(
+    feature: Feature<SupportedGeoJSON, GeoJsonProperties>,
+    options?: GeoJSONOptions
+  ): ConversionResult<Geometry> {
+    return GeoJSONCore.fromGeoJSON(feature, options);
+  }
+  static enhanceRTree<T extends SpatialItem>(tree: RTree<T>) {
+    return GeoJSONCore.enhanceRTree(tree);
   }
 }
