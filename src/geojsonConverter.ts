@@ -292,7 +292,7 @@ export class GeoJSONCore {
   ): ConversionResult<FeatureCollection> {
     const warnings: string[] = [];
     const features = items.map((item) => {
-      const result = GeoJSONConverter.toGeoJSON(item.geometry, options);
+      const result = GeoJSONCore.toGeoJSON(item.geometry, options);
       if (result.warnings) {
         warnings.push(...result.warnings.map((w) => `Item ${item.id}: ${w}`));
       }
@@ -362,7 +362,7 @@ export class GeoJSONCore {
           maxX: Infinity,
           maxY: Infinity,
         });
-        return GeoJSONConverter.toFeatureCollection(items, options);
+        return GeoJSONCore.toFeatureCollection(items, options);
       },
     };
   }
