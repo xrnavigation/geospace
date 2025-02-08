@@ -106,7 +106,7 @@ export class GeoJSONCore {
             this.toPosition([geometry.end.x, geometry.end.y], opts),
           ],
         };
-      } else if (isCircle(geometry)) {
+      } else if (isCircle(geometry) || (geometry && typeof geometry.radius === "number" && geometry.center)) {
         if (opts.circleMode === "polygon") {
           geoJsonGeometry = this.circleToPolygon(geometry, opts);
         } else {
