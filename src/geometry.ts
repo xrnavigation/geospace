@@ -129,8 +129,8 @@ export interface MultiPoint {
 
 /**
  * Interface for chainable geometric transformations.
- * Allows composing multiple transformations that can be applied to any geometry type.
- * All transformations are immutable and return a new Transform instance.
+ * Allows accumulating transformations for supported geometry values.
+ * Chain methods update and return the same Transform instance.
  *
  * @example
  * ```typescript
@@ -145,7 +145,7 @@ export interface Transform {
   /**
    * Translates (moves) geometry by the given vector.
    * @param vector The translation vector with x,y components
-   * @returns A new Transform with this translation applied
+   * @returns This Transform with the translation accumulated
    */
   translate(vector: Point): Transform;
 
@@ -154,21 +154,21 @@ export interface Transform {
    * Positive angles rotate counter-clockwise.
    * @param angleRadians The rotation angle in radians
    * @param center Optional center of rotation (defaults to origin)
-   * @returns A new Transform with this rotation applied
+   * @returns This Transform with the rotation accumulated
    */
   rotate(angleRadians: number, center?: Point): Transform;
 
   /**
    * Scales geometry from a center point by the given factor.
-   * @param factor The scale factor (must be > 0)
+   * @param factor The uniform scale factor
    * @param center Optional center of scaling (defaults to origin)
-   * @returns A new Transform with this scaling applied
+   * @returns This Transform with the scaling accumulated
    */
   scale(factor: number, center?: Point): Transform;
 
   /**
-   * Applies the accumulated transformations to a geometry object.
-   * @param geometry The geometry to transform
+   * Applies the accumulated transformations to a supported geometry object.
+   * @param geometry The supported geometry to transform
    * @returns A new transformed geometry of the same type
    * @throws Error if the geometry type is not supported
    */

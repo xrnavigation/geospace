@@ -1,298 +1,44 @@
 # Geospace
 
-A high-performance 2D geometry library with spatial indexing capabilities. Features numerically stable operations, quadratic-split R-tree indexing, and optimized polygon routines.
+Geospace is a TypeScript library for two-dimensional geometry, spatial indexing, raycasting, affine transformations, and GeoJSON conversion. It ships ESM, CommonJS, and UMD builds with declarations for both ESM and CommonJS consumers.
 
-![Build Status](https://img.shields.io/github/workflow/status/xrnavigation/geospace/CI)
-![Coverage](https://img.shields.io/codecov/c/github/xrnavigation/geospace)
-![Version](https://img.shields.io/npm/v/@xrnavigation/geospace)
+## Installation
 
-## Features
+```bash
+npm install @xrnavigation/geospace
+```
 
-- **Comprehensive Geometry Support**: Points, lines, circles, polygons, and rays with full type safety
-- **Raycasting**: Intersection testing for rays with line segments, circles, and polygons
-- **Spatial Indexing**: R-tree implementation with bulk-loading and nearest-neighbor search
-- **Numerical Stability**: Epsilon-based comparisons for robust geometric operations
-- **Memory Efficient**: Cached bounding boxes and optimized data structures
-- **Type Safe**: Full TypeScript support with comprehensive interfaces
-- **Enhanced Polygon Operations**: Support for polygons with holes, advanced interior routines, and cached bounding boxes for optimum performance
-
-## Quick Start
+ESM and TypeScript:
 
 ```typescript
-import { GeometryEngine, Point2D, Circle2D, euclideanDistance } from '@xrnavigation/geospace';
+import {
+  Circle2D,
+  GeometryEngine,
+  Point2D,
+  euclideanDistance,
+} from "@xrnavigation/geospace";
+```
 
-// Create a geometry engine with Euclidean distance
+CommonJS:
+
+```javascript
+const { Point2D, Polygon2D } = require("@xrnavigation/geospace");
+```
+
+## Quick start
+
+```typescript
+import {
+  Circle2D,
+  GeometryEngine,
+  Point2D,
+  Polygon2D,
+  euclideanDistance,
+} from "@xrnavigation/geospace";
+
 const engine = new GeometryEngine(euclideanDistance);
-
-// Create some geometric objects
-const point = new Point2D(0, 0);
-const circle = new Circle2D({ x: 3, y: 4 }, 5);
-
-// Calculate distance
-const dist = engine.pointToCircleDistance(point, circle);
-console.log(`Distance from point to circle: ${dist}`);
-```
-
-## Core Components
-
-### Geometry Types
-
-- **Point**: 2D point with x,y coordinates
-- **LineSegment**: Line segment defined by start and end points
-- **Circle**: Circle defined by center point and radius
-- **Polygon**: Polygon defined by ordered vertices, supporting holes and enhanced with advanced routines including optimized interior edge detection and cached bounding box computation
-
-### Key Operations
-
-- Distance calculations between any geometry types
-- Intersection testing
-- Containment checks
-- Area and perimeter calculations
-- Affine transformations (translate, rotate, scale)
-
-### Spatial Index
-
-The R-tree implementation provides efficient spatial queries:
-
-```typescript
-import { RTree, SpatialItem } from '@xrnavigation/geospace';
-
-// Create an R-tree
-const rtree = new RTree<SpatialItem>();
-
-// Add items
-rtree.insert(item);
-
-// Spatial search
-const results = rtree.search(bbox);
-
-// Find nearest neighbors
-const nearest = rtree.nearest(point, k);
-```
-
-## Performance Considerations
-
-- Use bulk loading for better R-tree performance when adding many items
-- Cache bounding boxes when possible
-- Consider using the spatial index for large datasets (>1000 items)
-- Pre-compute and store complex polygon operations
-- Use the appropriate epsilon value for your use case (default: 1e-10)
-- Avoid creating temporary geometries in tight loops
-- Consider using TypeScript's const assertions for immutable geometries
-- Profile and optimize raycasting operations for specific use cases
-
-### Memory Usage
-
-The library uses several techniques to minimize memory usage:
-
-```typescript
-// Use shared vertices for polygons
-const sharedVertices = [
-  { x: 0, y: 0 }, { x: 1, y: 0 }, 
-  { x: 1, y: 1 }, { x: 0, y: 1 }
-];
-const poly1 = new Polygon2D(sharedVertices);
-const poly2 = new Polygon2D(sharedVertices);
-
-// Take advantage of bounding box caching
-const item: SpatialItem = {
-  id: "cached",
-  geometry: new Polygon2D(...),
-  getBoundingBox() {
-    return this._cachedBox ??= this.geometry.getBoundingBox();
-  }
-};
-```
-
-### Numerical Stability
-
-The library uses the exported `EPSILON` constant for floating-point comparisons:
-
-```typescript
-import { EPSILON } from '@xrnavigation/geospace';
-
-// Example of stable point-on-line test
-const isOnLine = engine.pointToLineDistance(point, line) < EPSILON;
-```
-
-## Examples
-
-### Distance Calculations
-
-```typescript
-// Point to polygon distance
-const polygon = new Polygon2D([
-  { x: 0, y: 0 }, 
-  { x: 10, y: 0 }, 
-  { x: 10, y: 10 }, 
-  { x: 0, y: 10 }
-]);
 const point = new Point2D(15, 5);
-const distance = engine.pointToPolygonDistance(point, polygon);
-```
-
-### Intersection Testing
-
-```typescript
-// Test if circle intersects polygon
-const circle = new Circle2D({ x: 5, y: 5 }, 3);
-const intersects = engine.intersects(circle, polygon);
-```
-
-### Transformations
-
-```typescript
-// Create and chain transformations
-const transform = new AffineTransform()
-  .translate({ x: 10, y: 0 })
-  .rotate(Math.PI / 4)
-  .scale(2);
-
-// Apply to geometry
-const transformed = transform.apply(polygon);
-```
-
-### Raycasting Intersection Testing
-
-In addition to direct raycasting functions (raySegmentIntersection, rayCircleIntersection, and rayPolygonIntersection) that allow you to test individual geometries, the library now offers unified raycasting methods integrated into the GeometryEngine. These methods provide a convenient way to cast rays against a single geometry or multiple geometries.
-
-For example, using direct functions:
-
-```typescript
-import { Circle2D, LineSegment2D, Polygon2D, Ray, raySegmentIntersection, rayCircleIntersection, rayPolygonIntersection } from '@xrnavigation/geospace';
-
-const ray: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
-
-const seg = new LineSegment2D({ x: 5, y: -1 }, { x: 5, y: 1 });
-const interSeg = raySegmentIntersection(ray, seg);
-console.log("Ray-segment intersection:", interSeg);
-
-const circle = new Circle2D({ x: 5, y: 0 }, 1);
-const interCircle = rayCircleIntersection(ray, circle);
-console.log("Ray-circle intersection:", interCircle);
-
-const polygon = new Polygon2D([{ x: 3, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 7 }, { x: 3, y: 7 }]);
-const interPoly = rayPolygonIntersection(ray, polygon);
-console.log("Ray-polygon intersection:", interPoly);
-```
-
-Alternatively, using the unified GeometryEngine methods:
-
-```typescript
-import { GeometryEngine, Point2D, Circle2D, Polygon2D, LineSegment2D, euclideanDistance } from '@xrnavigation/geospace';
-
-const engine = new GeometryEngine(euclideanDistance);
-
-const rayOrigin = new Point2D(0, 0);
-const rayDirection = { x: 1, y: 0 };
-
-const seg = new LineSegment2D({ x: 2, y: -1 }, { x: 2, y: 1 });
-const resultSeg = engine.raycast(rayOrigin, rayDirection, seg);
-console.log("Unified raycast line segment:", resultSeg);
-
-const circle = new Circle2D({ x: 5, y: 0 }, 1);
-const resultCircle = engine.raycast(rayOrigin, rayDirection, circle);
-console.log("Unified raycast circle:", resultCircle);
-
-const polygon = new Polygon2D([{ x: 3, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 7 }, { x: 3, y: 7 }]);
-const resultPoly = engine.raycast(rayOrigin, rayDirection, polygon);
-console.log("Unified raycast polygon:", resultPoly);
-
-const resAll = engine.raycastAll(rayOrigin, rayDirection, [seg, circle, polygon]);
-console.log("Unified raycast all (closest):", resAll);
-```
-
-## GeoJSON Conversion
-
-The library provides conversion methods to and from GeoJSON through the `GeoJSON` fluent API.
-These methods allow you to convert geometry objects (such as Point2D, LineSegment2D, Circle2D, and Polygon2D)
-into GeoJSON Features and FeatureCollections, and to reconstruct geometry objects from GeoJSON data.
-You can also integrate GeoJSON conversion with spatial indices like the RTree for enhanced import/export capabilities.
-
-Example usage:
-
-```typescript
-import { GeoJSON, Point2D } from '@xrnavigation/geospace';
-
-const point = new Point2D(1, 2);
-const geoJSONFeature = GeoJSON.from(point).build().value;
-console.log("GeoJSON Feature:", geoJSONFeature);
-
-const converted = GeoJSON.to(geoJSONFeature).value;
-console.log("Converted Geometry:", converted);
-```
-
-## TypeScript Configuration
-
-The library requires TypeScript 4.8+ and these compiler options:
-
-```typescript
-{
-  "compilerOptions": {
-    "strict": true,
-    "target": "ES2020",
-    "lib": ["ES2020"],
-    "moduleResolution": "node"
-  }
-}
-```
-
-## Error Handling
-
-Geometry constructors throw standard `Error` instances for invalid inputs. GeoJSON validation failures use the exported `ValidationError` type.
-
-```typescript
-try {
-  const polygon = new Polygon2D([{x:0,y:0}, {x:1,y:1}]); 
-} catch (error) {
-  if (error instanceof Error) {
-    console.error("Invalid geometry:", error.message);
-  }
-}
-```
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. Numerical Precision
-   - Use appropriate epsilon value
-   - Consider input coordinate ranges
-   - Watch for accumulated errors
-
-2. Performance
-   - Profile with Chrome DevTools
-   - Use bulk operations
-   - Optimize spatial index usage
-
-3. Memory Leaks
-   - Clear spatial indices
-   - Avoid circular references
-   - Use WeakMap for caches
-
-## API Documentation
-
-See inline TypeScript interfaces and comments for detailed API documentation:
-
-- `GeometryOperations`: Core geometric operations interface
-- `Transform`: Chainable geometric transformations
-- `SpatialIndex`: Spatial indexing operations
-- `Bounded`: Interface for anything that can be bounded by a box
-- `GeometryEngine`: Main entry point for all operations
-- `RTree`: Spatial indexing implementation
-- `AffineTransform`: Transformation utilities
-
-## Comprehensive Usage Examples
-
-This section demonstrates how to use all major features of the library.
-
-### Geometry Creation and Operations
-```typescript
-import { Point2D, Circle2D, LineSegment2D, Polygon2D, euclideanDistance, GeometryEngine } from '@xrnavigation/geospace';
-
-const pt = new Point2D(1, 2);
-const circle = new Circle2D({ x: 5, y: 5 }, 3);
-const line = new LineSegment2D(new Point2D(0, 0), new Point2D(10, 0));
+const circle = new Circle2D({ x: 3, y: 4 }, 5);
 const polygon = new Polygon2D([
   { x: 0, y: 0 },
   { x: 10, y: 0 },
@@ -300,70 +46,198 @@ const polygon = new Polygon2D([
   { x: 0, y: 10 },
 ]);
 
-const engine = new GeometryEngine(euclideanDistance);
-console.log("Distance from point to circle:", engine.pointToCircleDistance(pt, circle));
-console.log("Line to polygon distance:", engine.lineToPolygonDistance(line, polygon));
+console.log(engine.pointToCircleDistance(point, circle));
+console.log(engine.pointToPolygonDistance(point, polygon));
+console.log(engine.intersects(circle, polygon));
 ```
 
-### Affine Transformations
+`GeometryEngine` provides distances for every supported pair of points, line segments, circles, and polygons. It also provides intersection, containment, area, perimeter, and raycasting operations.
+
+## Geometry types
+
+Geospace exports structural interfaces and concrete bounded classes:
+
+| Interface | Concrete class | Description |
+| --- | --- | --- |
+| `Point` | `Point2D` | An `{ x, y }` coordinate |
+| `LineSegment` | `LineSegment2D` | A segment with `start` and `end` points |
+| `Circle` | `Circle2D` | A positive radius around a center point |
+| `Polygon` | `Polygon2D` | An exterior ring with optional interior rings |
+| `MultiPoint` | `MultiPoint2D` | A non-empty collection of points |
+
+Concrete classes implement `getBoundingBox()`. Operations such as `getBBox`, `intersects`, and the distance methods also accept matching structural objects, so callers do not have to wrap every value in a class.
+
+Polygon rings contain each vertex once; do not repeat the first vertex at the end:
+
 ```typescript
-import { AffineTransform, Point2D } from '@xrnavigation/geospace';
+import { Polygon2D } from "@xrnavigation/geospace";
+
+const polygonWithHole = new Polygon2D(
+  [
+    { x: 0, y: 0 },
+    { x: 10, y: 0 },
+    { x: 10, y: 10 },
+    { x: 0, y: 10 },
+  ],
+  [[
+    { x: 4, y: 4 },
+    { x: 6, y: 4 },
+    { x: 6, y: 6 },
+    { x: 4, y: 6 },
+  ]],
+);
+```
+
+## Affine transformations
+
+`AffineTransform` accumulates operations on the same transform and applies the result to a new geometry value:
+
+```typescript
+import { AffineTransform, Point2D } from "@xrnavigation/geospace";
 
 const transform = new AffineTransform()
-  .translate({ x: 2, y: 3 })
+  .translate({ x: 10, y: 0 })
   .rotate(Math.PI / 4)
-  .scale(1.5);
+  .scale(2);
 
-const original = new Point2D(1, 1);
-const transformed = transform.apply(original);
-console.log("Transformed Point:", transformed);
+const transformed = transform.apply(new Point2D(1, 1));
 ```
 
-### Spatial Indexing with RTree
+Rotation and scaling default to the origin and accept an optional center point. Circles support uniform scaling only.
+
+## Spatial indexing
+
+`RTree<T>` indexes `SpatialItem` values and supports insertion, removal, bounding-box search, nearest-neighbor search, bulk loading, and clearing:
+
 ```typescript
-import { RTree, Point2D } from '@xrnavigation/geospace';
+import {
+  Point2D,
+  RTree,
+  type SpatialItem,
+} from "@xrnavigation/geospace";
 
-// Create and populate an R-tree
-const rtree = new RTree();
-rtree.insert({ id: "pt1", geometry: new Point2D(1, 1), metadata: {}, getBoundingBox: () => new Point2D(1, 1).getBoundingBox() });
-rtree.insert({ id: "pt2", geometry: new Point2D(5, 5), metadata: {}, getBoundingBox: () => new Point2D(5, 5).getBoundingBox() });
-
-// Perform search and nearest neighbor query
-console.log("Items in box:", rtree.search({ minX: 0, minY: 0, maxX: 3, maxY: 3 }));
-console.log("Nearest to (0,0):", rtree.nearest(new Point2D(0, 0), 1));
-```
-
-### Raycasting
-```typescript
-import { Point2D, LineSegment2D, raySegmentIntersection, Ray } from '@xrnavigation/geospace';
-
-const ray: Ray = {
-  origin: new Point2D(0, 0),
-  direction: new Point2D(1, 0)
+const geometry = new Point2D(5, 5);
+const item: SpatialItem = {
+  id: "point-1",
+  geometry,
+  metadata: { category: "example" },
+  getBoundingBox: () => geometry.getBoundingBox(),
 };
 
-const seg = new LineSegment2D(new Point2D(2, -1), new Point2D(2, 1));
-const intersection = raySegmentIntersection(ray, seg);
-console.log("Ray-Segment Intersection:", intersection);
+const index = new RTree<SpatialItem>();
+index.insert(item);
+
+const matches = index.search({ minX: 0, minY: 0, maxX: 10, maxY: 10 });
+const nearest = index.nearest({ x: 0, y: 0 }, 1);
 ```
 
-### GeoJSON Conversion
+Use `bulkLoad(items)` when constructing an index from an existing collection. `SpatialItem.metadata` accepts `Record<string, unknown> | null`.
+
+## Raycasting
+
+Use the direct intersection functions when testing one shape, or `GeometryEngine.raycastAll` to select the closest hit:
+
 ```typescript
-import { GeoJSON, Point2D } from '@xrnavigation/geospace';
+import {
+  Circle2D,
+  GeometryEngine,
+  LineSegment2D,
+  Point2D,
+  raySegmentIntersection,
+  euclideanDistance,
+  type Ray,
+} from "@xrnavigation/geospace";
 
-const geoPoint = new Point2D(1, 2);
-const feature = GeoJSON.from(geoPoint).build().value;
-console.log("GeoJSON Feature:", feature);
+const ray: Ray = {
+  origin: { x: 0, y: 0 },
+  direction: { x: 1, y: 0 },
+};
+const segment = new LineSegment2D({ x: 2, y: -1 }, { x: 2, y: 1 });
 
-const converted = GeoJSON.to(feature).value;
-console.log("Converted Geometry:", converted);
+console.log(raySegmentIntersection(ray, segment));
+
+const engine = new GeometryEngine(euclideanDistance);
+const hit = engine.raycastAll(
+  new Point2D(0, 0),
+  { x: 1, y: 0 },
+  [segment, new Circle2D({ x: 5, y: 0 }, 1)],
+);
+console.log(hit);
 ```
 
-## Testing
+The direct exports are `raySegmentIntersection`, `rayCircleIntersection`, and `rayPolygonIntersection`. A miss returns `null`.
 
-Run the comprehensive test suite:
+## GeoJSON
+
+The fluent `GeoJSON` API converts supported geometry values to and from GeoJSON features. Conversion results contain the converted `value` and a `warnings` array.
+
+```typescript
+import { Circle2D, GeoJSON } from "@xrnavigation/geospace";
+
+const circle = new Circle2D({ x: 5, y: 5 }, 2);
+const encoded = GeoJSON.from(circle)
+  .withCircleAsPolygon()
+  .withCircleSegments(32)
+  .build();
+
+console.log(encoded.value);
+console.log(encoded.warnings);
+
+const decoded = GeoJSON.to(encoded.value);
+console.log(decoded.value);
+```
+
+Circles default to 64-segment polygon output. Use `withCircleAsPointRadius()` for point-plus-radius encoding, or `withCoordinateTransformation()` to transform positions during conversion.
+
+For untrusted input, use the exported guards before conversion:
+
+```typescript
+import { isFeature, isGeoJSON } from "@xrnavigation/geospace";
+
+if (isGeoJSON(input)) {
+  // input is now narrowed to a valid GeoJSON value
+}
+
+if (isFeature(input)) {
+  // input is now narrowed to a GeoJSON Feature
+}
+```
+
+Geospace also exports guards for feature collections, positions, points, multipoints, line strings, and polygons. Validation and conversion failures use `ValidationError` and `ConversionError`, both derived from `GeoJSONError`. Geometry constructors throw `Error` for invalid values such as non-positive circle radii or undersized polygon rings.
+
+## Floating-point comparisons
+
+Use the exported `EPSILON` constant when comparing computed values:
+
+```typescript
+import { EPSILON } from "@xrnavigation/geospace";
+
+const approximatelyEqual = Math.abs(actual - expected) <= EPSILON;
+```
+
+## TypeScript configuration
+
+The package exports separate declarations for ESM and CommonJS. A strict ESM project can use bundler resolution:
+
+```json
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true
+  }
+}
+```
+
+Node projects can instead use matching `Node16` or `NodeNext` values for `module` and `moduleResolution`.
+
+## Development
 
 ```bash
+npm ci
 npm test
+npx tsc --noEmit
+npm run build
 ```
 
+`npm run build` writes ESM, CommonJS, and UMD bundles, source maps, and TypeScript declarations to `dist/`.
