@@ -32,14 +32,15 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 
 ### Baseline profile
 
-- Status: instrumentation failure. The focused Vitest fork-pool diagnostic completed, but neither the generated CPU profile nor the generated heap profile contained `dist/geometry.es.js` or any `geometry.es.js` location.
-- Retained diagnostic evidence: `profiles/polygon-distance-baseline/benchmark.json`.
-- Retained raw CPU profiles: none.
-- Retained raw heap profiles: none.
-- Attribution: none. The failed instrumentation measured no valid built-bundle self samples, relevant functions, allocation sizes, or allocation totals.
-- Candidate decision: unchanged. P1, P3, and P2 remain candidates; none is reprioritized, killed, triaged, or selected for a full experiment.
-- Candidate order: `P1`, `P3`, `P2`, preserved only as the initial order and not claimed as profile-backed.
-- Probe budget: unchanged at three triage probes; this prerequisite consumed no probe.
-- Next action: repair the instrumentation until actual benchmark-worker CPU and heap profiles contain `dist/geometry.es.js`, then repeat the baseline-profile prerequisite before any candidate probe.
-- Report: `reports/geospace-polygon-distance-profile.md`.
-- Artifact commit: `a304cce88b099445a13b272ffd81046d32336069`.
+- Status: repaired with a valid direct diagnostic profile. The committed driver imported the built package and executed the exact 128-by-128 polygon fixture through the public `polygonToPolygonDistance` method in the profiled process.
+- Retained driver output: `profiles/polygon-distance-direct/driver-output.json`; validated distance 20, 500 warmups, 5,000 profiled calls, checksum 100000, and 25791.464 elapsed milliseconds.
+- Retained raw CPU profile: `profiles/polygon-distance-direct/CPU.20260718.231221.196512.0.001.cpuprofile`.
+- Retained raw heap profile: `profiles/polygon-distance-direct/Heap.20260718.231221.196512.0.002.heapprofile`.
+- Attribution: `geometry.es.js` accounts for 18,121 of 20,356 CPU self samples (89.02%) and 119,040 of 1,304,928 sampled heap bytes (9.12%). Named segment-distance/intersection functions account for 13,685 relevant CPU self samples, or 75.52% of bundle attribution.
+- Candidate decision: `P1` remains priority 1 and is now profile-backed because the current segment-distance/intersection functions exceed the 50% relevant-CPU threshold. `P3` remains priority 2 and `P2` remains priority 3. No candidate was killed, triaged, implemented, or preregistered.
+- Candidate order: `P1`, `P3`, `P2`, now profile-backed.
+- Probe budget: unchanged at three triage probes; this repair consumed no probe.
+- Next action: begin the profile-backed `P1` triage probe in a separate campaign step; this repair does not execute or preregister it.
+- Repair report: `reports/geospace-polygon-distance-profile-repair.md`.
+- Superseded failed-profile report and artifact commit: `reports/geospace-polygon-distance-profile.md`, `a304cce88b099445a13b272ffd81046d32336069`.
+- Repair commit: pending.
