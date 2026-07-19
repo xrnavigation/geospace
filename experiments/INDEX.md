@@ -27,3 +27,19 @@ The code claims and candidate mechanisms are sourced from the [Geospace performa
 A CPU/allocation profile of the real development row is required before the first probe and may reprioritize or kill candidates. Do not run the profile, benchmark, or any candidate in this task.
 
 Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
+
+## Round log
+
+### Baseline profile
+
+- Status: instrumentation failure. The focused Vitest fork-pool diagnostic completed, but neither the generated CPU profile nor the generated heap profile contained `dist/geometry.es.js` or any `geometry.es.js` location.
+- Retained diagnostic evidence: `profiles/polygon-distance-baseline/benchmark.json`.
+- Retained raw CPU profiles: none.
+- Retained raw heap profiles: none.
+- Attribution: none. The failed instrumentation measured no valid built-bundle self samples, relevant functions, allocation sizes, or allocation totals.
+- Candidate decision: unchanged. P1, P3, and P2 remain candidates; none is reprioritized, killed, triaged, or selected for a full experiment.
+- Candidate order: `P1`, `P3`, `P2`, preserved only as the initial order and not claimed as profile-backed.
+- Probe budget: unchanged at three triage probes; this prerequisite consumed no probe.
+- Next action: repair the instrumentation until actual benchmark-worker CPU and heap profiles contain `dist/geometry.es.js`, then repeat the baseline-profile prerequisite before any candidate probe.
+- Report: `reports/geospace-polygon-distance-profile.md`.
+- Artifact commit: `PENDING`.
