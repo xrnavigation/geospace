@@ -43,39 +43,218 @@ export class ConversionError extends GeoJSONError {
 }
 
 // Type guards
-export function isGeoJSON(obj: any): obj is GeoJSON {
-  return obj && typeof obj === "object" && "type" in obj;
+export function isGeoJSON(obj: unknown): obj is GeoJSON {
+  if (
+    typeof obj !== "object" ||
+    obj === null ||
+    !("type" in obj) ||
+    typeof obj.type !== "string"
+  ) {
+    return false;
+  }
+
+  switch (obj.type) {
+    case "Point":
+      return isGeoJSONPoint(obj);
+    case "MultiPoint":
+      return isGeoJSONMultiPoint(obj);
+    case "LineString":
+      return isGeoJSONLineString(obj);
+    case "Polygon":
+      return isGeoJSONPolygon(obj);
+    case "MultiLineString":
+      return (
+        "coordinates" in obj &&
+        Array.isArray(obj.coordinates) &&
+        obj.coordinates.every(
+          (line: unknown) =>
+            Array.isArray(line) &&
+            line.every((position: unknown) => isGeoJSONPosition(position))
+        ) &&
+        (!("bbox" in obj) ||
+          (Array.isArray(obj.bbox) &&
+            obj.bbox.every(
+              (coordinate: unknown) => typeof coordinate === "number"
+            )))
+      );
+    case "MultiPolygon":
+      return (
+        "coordinates" in obj &&
+        Array.isArray(obj.coordinates) &&
+        obj.coordinates.every(
+          (polygon: unknown) =>
+            Array.isArray(polygon) &&
+            polygon.every(
+              (ring: unknown) =>
+                Array.isArray(ring) &&
+                ring.every((position: unknown) =>
+                  isGeoJSONPosition(position)
+                )
+            )
+        ) &&
+        (!("bbox" in obj) ||
+          (Array.isArray(obj.bbox) &&
+            obj.bbox.every(
+              (coordinate: unknown) => typeof coordinate === "number"
+            )))
+      );
+    case "GeometryCollection":
+      return (
+        "geometries" in obj &&
+        Array.isArray(obj.geometries) &&
+        obj.geometries.every(
+          (geometry: unknown) =>
+            isGeoJSON(geometry) &&
+            geometry.type !== "Feature" &&
+            geometry.type !== "FeatureCollection"
+        ) &&
+        (!("bbox" in obj) ||
+          (Array.isArray(obj.bbox) &&
+            obj.bbox.every(
+              (coordinate: unknown) => typeof coordinate === "number"
+            )))
+      );
+    case "Feature":
+      return isFeature(obj);
+    case "FeatureCollection":
+      return isFeatureCollection(obj);
+    default:
+      return false;
+  }
 }
 
-export function isFeature(obj: any): obj is Feature {
-  return isGeoJSON(obj) && obj.type === "Feature";
+export function isFeature(obj: unknown): obj is Feature {
+  if (
+    typeof obj !== "object" ||
+    obj === null ||
+    !("type" in obj) ||
+    obj.type !== "Feature" ||
+    !("geometry" in obj) ||
+    !("properties" in obj)
+  ) {
+    return false;
+  }
+
+  const geometry = obj.geometry;
+  return (
+    (geometry === null ||
+      (isGeoJSON(geometry) &&
+        geometry.type !== "Feature" &&
+        geometry.type !== "FeatureCollection")) &&
+    (obj.properties === null ||
+      (typeof obj.properties === "object" &&
+        !Array.isArray(obj.properties))) &&
+    (!("id" in obj) ||
+      typeof obj.id === "string" ||
+      typeof obj.id === "number") &&
+    (!("bbox" in obj) ||
+      (Array.isArray(obj.bbox) &&
+        obj.bbox.every(
+          (coordinate: unknown) => typeof coordinate === "number"
+        )))
+  );
 }
 
-export function isFeatureCollection(obj: any): obj is FeatureCollection {
-  return isGeoJSON(obj) && obj.type === "FeatureCollection";
+export function isFeatureCollection(obj: unknown): obj is FeatureCollection {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "type" in obj &&
+    obj.type === "FeatureCollection" &&
+    "features" in obj &&
+    Array.isArray(obj.features) &&
+    obj.features.every((feature: unknown) => isFeature(feature)) &&
+    (!("bbox" in obj) ||
+      (Array.isArray(obj.bbox) &&
+        obj.bbox.every(
+          (coordinate: unknown) => typeof coordinate === "number"
+        )))
+  );
 }
 
-export function isGeoJSONPoint(obj: any): obj is Point {
-  return isGeoJSON(obj) && obj.type === "Point";
+export function isGeoJSONPoint(obj: unknown): obj is Point {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "type" in obj &&
+    obj.type === "Point" &&
+    "coordinates" in obj &&
+    isGeoJSONPosition(obj.coordinates) &&
+    (!("bbox" in obj) ||
+      (Array.isArray(obj.bbox) &&
+        obj.bbox.every(
+          (coordinate: unknown) => typeof coordinate === "number"
+        )))
+  );
 }
 
-export function isGeoJSONMultiPoint(obj: any): obj is MultiPoint {
-  return isGeoJSON(obj) && obj.type === "MultiPoint";
+export function isGeoJSONMultiPoint(obj: unknown): obj is MultiPoint {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "type" in obj &&
+    obj.type === "MultiPoint" &&
+    "coordinates" in obj &&
+    Array.isArray(obj.coordinates) &&
+    obj.coordinates.every((position: unknown) =>
+      isGeoJSONPosition(position)
+    ) &&
+    (!("bbox" in obj) ||
+      (Array.isArray(obj.bbox) &&
+        obj.bbox.every(
+          (coordinate: unknown) => typeof coordinate === "number"
+        )))
+  );
 }
 
-export function isGeoJSONLineString(obj: any): obj is LineString {
-  return isGeoJSON(obj) && obj.type === "LineString";
+export function isGeoJSONLineString(obj: unknown): obj is LineString {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "type" in obj &&
+    obj.type === "LineString" &&
+    "coordinates" in obj &&
+    Array.isArray(obj.coordinates) &&
+    obj.coordinates.every((position: unknown) =>
+      isGeoJSONPosition(position)
+    ) &&
+    (!("bbox" in obj) ||
+      (Array.isArray(obj.bbox) &&
+        obj.bbox.every(
+          (coordinate: unknown) => typeof coordinate === "number"
+        )))
+  );
 }
 
-export function isGeoJSONPolygon(obj: any): obj is Polygon {
-  return isGeoJSON(obj) && obj.type === "Polygon";
+export function isGeoJSONPolygon(obj: unknown): obj is Polygon {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "type" in obj &&
+    obj.type === "Polygon" &&
+    "coordinates" in obj &&
+    Array.isArray(obj.coordinates) &&
+    obj.coordinates.every(
+      (ring: unknown) =>
+        Array.isArray(ring) &&
+        ring.every((position: unknown) => isGeoJSONPosition(position))
+    ) &&
+    (!("bbox" in obj) ||
+      (Array.isArray(obj.bbox) &&
+        obj.bbox.every(
+          (coordinate: unknown) => typeof coordinate === "number"
+        )))
+  );
 }
 
-export function isGeoJSONPosition(obj: any): obj is Position {
+export function isGeoJSONPosition(obj: unknown): obj is Position {
   return (
     Array.isArray(obj) &&
     obj.length >= 2 &&
-    obj.every((n) => typeof n === "number")
+    obj.every(
+      (coordinate: unknown) =>
+        typeof coordinate === "number" && Number.isFinite(coordinate)
+    )
   );
 }
 
