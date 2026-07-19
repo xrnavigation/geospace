@@ -46,7 +46,7 @@ export interface Point {
  * };
  * ```
  */
-export interface Circle extends Point, Bounded {
+export interface Circle {
   /** Center point of the circle */
   readonly center: Point;
   /** Radius of the circle (must be positive) */
@@ -65,7 +65,7 @@ export interface Circle extends Point, Bounded {
  * };
  * ```
  */
-export interface LineSegment extends Bounded {
+export interface LineSegment {
   /** Starting point of the line segment */
   readonly start: Point;
   /** Ending point of the line segment */
@@ -100,11 +100,6 @@ export interface Polygon {
   readonly exterior: readonly Point[];
   /** Optional interior rings (holes), each as an ordered list of vertices */
   readonly holes?: readonly (readonly Point[])[];
-  /**
-   * Gets the bounding box of the polygon (based on its exterior ring).
-   * @returns The axis-aligned bounding box containing the exterior ring
-   */
-  getBoundingBox(): BoundingBox;
 }
 
 /**
@@ -201,7 +196,10 @@ export interface GeometryOperations {
   polygonToPolygonDistance(a: Polygon, b: Polygon): number;
 
   /** Test if geometries intersect */
-  intersects(a: Geometry, b: Geometry): boolean;
+  intersects(
+    a: Geometry | Point | LineSegment | Circle | Polygon,
+    b: Geometry | Point | LineSegment | Circle | Polygon
+  ): boolean;
 
   /** Test if first geometry fully contains second */
   contains(
@@ -255,42 +253,53 @@ export type Geometry =
   | Polygon2D
   | MultiPoint2D;
 
-export function getBBox(geom: Geometry): BoundingBox {
-  if (geom && typeof (geom as any).getBoundingBox === "function") {
-    return (geom as any).getBoundingBox();
+export function getBBox(
+  geom: Geometry | Point | LineSegment | Circle | Polygon | MultiPoint
+): BoundingBox {
+  if (
+    geom instanceof Point2D ||
+    geom instanceof MultiPoint2D ||
+    geom instanceof Circle2D ||
+    geom instanceof LineSegment2D ||
+    geom instanceof Polygon2D
+  ) {
+    return geom.getBoundingBox();
   }
-  if ("x" in geom && "y" in geom) {
+  if (isPoint(geom)) {
     return {
-      minX: (geom as any).x!,
-      minY: (geom as any).y!,
-      maxX: (geom as any).x!,
-      maxY: (geom as any).y!,
+      minX: geom.x,
+      minY: geom.y,
+      maxX: geom.x,
+      maxY: geom.y,
     };
   }
-  if ("start" in geom && "end" in geom) {
-    const { start, end } = geom as any;
+  if (isLineSegment(geom)) {
     return {
-      minX: Math.min(start.x!, end.x!),
-      minY: Math.min(start.y!, end.y!),
-      maxX: Math.max(start.x!, end.x!),
-      maxY: Math.max(start.y!, end.y!),
+      minX: Math.min(geom.start.x, geom.end.x),
+      minY: Math.min(geom.start.y, geom.end.y),
+      maxX: Math.max(geom.start.x, geom.end.x),
+      maxY: Math.max(geom.start.y, geom.end.y),
     };
   }
-  if ("center" in geom && "radius" in geom) {
-    const { center, radius } = geom as any;
+  if (isCircle(geom)) {
     return {
-      minX: center.x! - radius,
-      minY: center.y! - radius,
-      maxX: center.x! + radius,
-      maxY: center.y! + radius,
+      minX: geom.center.x - geom.radius,
+      minY: geom.center.y - geom.radius,
+      maxX: geom.center.x + geom.radius,
+      maxY: geom.center.y + geom.radius,
     };
   }
-  if ("exterior" in geom && Array.isArray((geom as any).exterior)) {
+  const points = isPolygon(geom)
+    ? geom.exterior
+    : isMultiPoint(geom)
+      ? geom.points
+      : undefined;
+  if (points) {
     let minX = Infinity,
       minY = Infinity,
       maxX = -Infinity,
       maxY = -Infinity;
-    for (const p of (geom as any).exterior) {
+    for (const p of points) {
       if (p.x < minX) minX = p.x;
       if (p.y < minY) minY = p.y;
       if (p.x > maxX) maxX = p.x;
@@ -668,26 +677,65 @@ function transformPoint(p: Point, m: number[]): Point {
 // ==========================
 // Type guards for geometry types
 // ==========================
-export function isPoint(geom: any): geom is Point {
+export function isPoint(geom: unknown): geom is Point {
   return (
-    geom.x !== undefined &&
-    geom.y !== undefined &&
-    geom.start === undefined &&
-    geom.center === undefined &&
-    geom.vertices === undefined
+    typeof geom === "object" &&
+    geom !== null &&
+    "x" in geom &&
+    typeof geom.x === "number" &&
+    "y" in geom &&
+    typeof geom.y === "number" &&
+    !("start" in geom) &&
+    !("center" in geom) &&
+    !("exterior" in geom) &&
+    !("points" in geom)
   );
 }
-export function isLineSegment(geom: any): geom is LineSegment {
-  return geom.start !== undefined && geom.end !== undefined;
+export function isLineSegment(geom: unknown): geom is LineSegment {
+  return (
+    typeof geom === "object" &&
+    geom !== null &&
+    "start" in geom &&
+    isPoint(geom.start) &&
+    "end" in geom &&
+    isPoint(geom.end)
+  );
 }
-export function isCircle(geom: any): geom is Circle {
-  return geom.center !== undefined && geom.radius !== undefined;
+export function isCircle(geom: unknown): geom is Circle {
+  return (
+    typeof geom === "object" &&
+    geom !== null &&
+    "center" in geom &&
+    isPoint(geom.center) &&
+    "radius" in geom &&
+    typeof geom.radius === "number"
+  );
 }
-export function isPolygon(geom: any): geom is Polygon {
-  return geom.exterior !== undefined;
+export function isPolygon(geom: unknown): geom is Polygon {
+  return (
+    typeof geom === "object" &&
+    geom !== null &&
+    "exterior" in geom &&
+    Array.isArray(geom.exterior) &&
+    geom.exterior.every((point: unknown) => isPoint(point)) &&
+    (!("holes" in geom) ||
+      geom.holes === undefined ||
+      (Array.isArray(geom.holes) &&
+        geom.holes.every(
+          (ring: unknown) =>
+            Array.isArray(ring) &&
+            ring.every((point: unknown) => isPoint(point))
+        )))
+  );
 }
-export function isMultiPoint(geom: any): geom is MultiPoint {
-  return (geom as any).points !== undefined;
+export function isMultiPoint(geom: unknown): geom is MultiPoint {
+  return (
+    typeof geom === "object" &&
+    geom !== null &&
+    "points" in geom &&
+    Array.isArray(geom.points) &&
+    geom.points.every((point: unknown) => isPoint(point))
+  );
 }
 
 // ==========================
@@ -805,7 +853,10 @@ export class GeometryEngine implements GeometryOperations {
 
     return minDist;
   }
-  intersects(a: Geometry, b: Geometry): boolean {
+  intersects(
+    a: Geometry | Point | LineSegment | Circle | Polygon,
+    b: Geometry | Point | LineSegment | Circle | Polygon
+  ): boolean {
     // Get bounding boxes, handling each geometry type appropriately
     let bboxA: BoundingBox;
     let bboxB: BoundingBox;
@@ -849,7 +900,7 @@ export class GeometryEngine implements GeometryOperations {
         maxY: b.center.y + b.radius,
       };
     } else if (isPolygon(b)) {
-      bboxB = b.getBoundingBox();
+      bboxB = getBBox(b);
     } else {
       throw new Error("Unknown geometry type");
     }
@@ -1063,7 +1114,9 @@ export class GeometryEngine implements GeometryOperations {
    * If a spatial index is provided, return all items in the index
    * whose bounding boxes intersect the given geometry.
    */
-  query(geometry: Geometry): (Geometry & Bounded)[] {
+  query(
+    geometry: Geometry | Point | LineSegment | Circle | Polygon | MultiPoint
+  ): (Geometry & Bounded)[] {
     if (this.index) {
       let bbox: BoundingBox;
       bbox = getBBox(geometry);
@@ -1088,7 +1141,7 @@ export class GeometryEngine implements GeometryOperations {
       // Fallback: if no intersection found and the ray is heading right,
       // compute intersection with the polygon’s left boundary using its bounding box.
       if (intersection === null && direction.x > EPSILON) {
-        const bbox = geometry.getBoundingBox();
+        const bbox = getBBox(geometry);
         const t = (bbox.minX - origin.x) / direction.x;
         if (t >= 0) {
           intersection = {
@@ -1473,8 +1526,7 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
     this.root = new Node<T>(true);
   }
   insert(item: T): void {
-    const bbox =
-      (item as any).geometry?.getBoundingBox() || item.getBoundingBox();
+    const bbox = item.geometry.getBoundingBox();
     const entry: Entry<T> = { bbox, item };
     this._insert(entry, this.root);
   }
@@ -1754,7 +1806,7 @@ export class RTree<T extends SpatialItem> implements SpatialIndex<T> {
     }
     const M = this.maxEntries;
     let entries: Entry<T>[] = items.map((item) => ({
-      bbox: (item as any).geometry?.getBoundingBox() || item.getBoundingBox(),
+      bbox: item.geometry.getBoundingBox(),
       item,
     }));
     // Determine number of slices S = ceil(sqrt(n / M))
