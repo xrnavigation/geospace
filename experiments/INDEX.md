@@ -96,3 +96,40 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
   unless all pass.
 - Preregistration artifact commit:
   `8d8175ce013c83de9ebc4da7301280836ba0717a`.
+
+### P1 full experiment
+
+- Status: `promotable development result` for exact candidate
+  `b92885d4f0fea7c1d985959bdde07c17a95ebada` against exact baseline
+  `31fac31e193ea790cda6d1ff09223f4049d6ed6c` on Node.js `v22.18.0`.
+- Preconditions and correctness: all six fixed preconditions, all four exact
+  correctness gates, and both affected-row confirmation commands passed.
+- Affected non-holdout rows: empty. The candidate changes only
+  `src/geometry.tests.ts` and `src/geometry.ts`, and the committed benchmark
+  suite has exactly one `polygonToPolygonDistance` call, at the target row.
+- Baseline run medians: `705.7999999999538`, `689.9000000000797`,
+  `660.7999999999947`, `657.3499999999513`, and `662.5999999999976 us`.
+- Candidate run medians: `204.09999999992579`, `204.39999999996417`,
+  `207.20000000005712`, `205.7999999999538`, and
+  `206.40000000003056 us`.
+- Median of medians: `662.5999999999976 us` baseline and
+  `205.7999999999538 us` candidate; unrounded change
+  `-68.94053727739895%`.
+- Paired differences: `-501.700000000028`, `-485.5000000001155`,
+  `-453.5999999999376`, `-451.54999999999745`, and
+  `-456.1999999999671 us`.
+- Fixed paired interval: mean `-469.71000000000913 us`, sample standard
+  deviation `22.608195416753368 us`, and two-sided 95% Student t interval
+  `[-497.7817823133472, -441.63821768667106] us`.
+- Decision: both unrounded performance conditions passed. The candidate
+  worktree ended clean at exact candidate `b92885d`; no timed command was
+  retried or replaced.
+- Budget: one of two full-experiment slots consumed; one remains.
+- Evidence: `reports/geospace-p1-full-experiment.md` and
+  `experiments/p1-full/`.
+- Holdout and integration: Ward was skipped; Node.js 24 was not run and
+  remains sealed; no promotion, merge, cherry-pick, or push was performed.
+- Exact next campaign action: obtain a new user message authorizing exact
+  candidate `b92885d4f0fea7c1d985959bdde07c17a95ebada` and the Node.js 24 holdout;
+  do not promote or consume the holdout before that authorization.
+- First evidence artifact commit: pending until the first record-only commit.
