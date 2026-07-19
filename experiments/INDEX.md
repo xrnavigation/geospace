@@ -171,3 +171,37 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
   worktree, leave it available for parent verification, and do not merge,
   cherry-pick, push, or alter master source.
 - Preregistration: `experiments/p1-holdout-node24/PREREGISTRATION.md`.
+
+### P1 Node 24 holdout setup attempt 1
+
+- Preregistration commit:
+  `7aa94a147d98d819ffdecce55a037699f9198da5`.
+- Classification:
+  `invalid setup procedure; holdout data unopened; candidate not evaluated`.
+- Identity and integrity: the detached holdout worktree was exact candidate
+  `b92885d4f0fea7c1d985959bdde07c17a95ebada`, whose exact parent was baseline
+  `31fac31e193ea790cda6d1ff09223f4049d6ed6c`; ancestry, evaluator seal,
+  exact two-file source scope, and exact one-call benchmark call graph passed.
+- Node.js 24 proof: `nvm use 24.16.0` reported
+  `Now using node v24.16.0 (64-bit)`, and `node --version` reported
+  exact `v24.16.0`.
+- First gate: `npx tsc --noEmit` failed with exact leading error
+  `This is not the tsc command you are looking for`; the error said to use
+  `npm install typescript` first or use `yarn`. The clean detached worktree
+  did not contain installed TypeScript.
+- Not run: `npm test`, `npm run build`,
+  `npx tsc -p tsconfig.benchmarks.json`, and all ten benchmark timing commands.
+- Data: no Node.js 24 raw JSON file was created or opened; there are no
+  holdout medians, paired differences, interval, or performance decision.
+- No salvage: no dependency install, retry, replacement command, alternate
+  worktree, source/test/evaluator edit, merge, cherry-pick, push, or Ward
+  command occurred.
+- Node.js 22 restoration proof: `nvm use 22.18.0` reported
+  `Now using node v22.18.0 (64-bit)`, and `node --version` reported exact
+  `v22.18.0`.
+- Terminal candidate/worktree proof: detached `HEAD` remained exact candidate
+  `b92885d4f0fea7c1d985959bdde07c17a95ebada`, and
+  `git status --porcelain=v1` produced no output. The clean detached worktree
+  remains available.
+- Record: `reports/geospace-p1-node24-holdout-attempt-1.md`.
+- Next action: `new preregistration with npm ci before gates`.
