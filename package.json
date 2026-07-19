@@ -23,6 +23,7 @@
   ],
   "scripts": {
     "test": "vitest run",
+    "benchmark": "npm run build --silent && tsc -p tsconfig.benchmarks.json && vitest bench --run",
     "build": "vite build && tsc",
     "preview": "vite preview"
   },

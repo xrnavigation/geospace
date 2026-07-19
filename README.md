@@ -238,6 +238,9 @@ npm ci
 npm test
 npx tsc --noEmit
 npm run build
+npm run benchmark
 ```
 
 `npm run build` writes ESM, CommonJS, and UMD bundles, source maps, and TypeScript declarations to `dist/`.
+
+See the repository's [benchmark guide](https://github.com/xrnavigation/geospace/blob/master/benchmarks/README.md) for the fixed workloads, measurement rules, and machine-readable result command.
