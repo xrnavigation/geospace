@@ -1,0 +1,39 @@
+{
+  "files": [
+    {
+      "filepath": "C:/Users/Q/src/audiom/geospace-p1-triage/benchmarks/core.bench.ts",
+      "groups": [
+        {
+          "fullName": "benchmarks/core.bench.ts > geometry operations",
+          "benchmarks": [
+            {
+              "id": "-462543565_0_1",
+              "name": "polygon-to-polygon distance, 128 x 128 vertices",
+              "rank": 1,
+              "rme": 1.689770577073414,
+              "samples": [],
+              "totalTime": 500.93509999999833,
+              "min": 0.6550999999999476,
+              "max": 1.8080000000001064,
+              "hz": 1227.7039480763117,
+              "period": 0.8145286178861761,
+              "mean": 0.8145286178861761,
+              "variance": 0.030327119016816943,
+              "sd": 0.17414683177369877,
+              "sem": 0.007022278023920072,
+              "df": 614,
+              "critical": 1.96,
+              "moe": 0.013763664926883341,
+              "p75": 0.8652000000000726,
+              "p99": 1.501100000000065,
+              "p995": 1.5107000000000426,
+              "p999": 1.8080000000001064,
+              "sampleCount": 615,
+              "median": 0.7531000000000176
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

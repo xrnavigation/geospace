@@ -44,3 +44,17 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Repair report: `reports/geospace-polygon-distance-profile-repair.md`.
 - Superseded failed-profile report and artifact commit: `reports/geospace-polygon-distance-profile.md`, `a304cce88b099445a13b272ffd81046d32336069`.
 - Repair commit: `18567ad1923b71c0c6007258050fe0b9ebae93ae`.
+
+### P1 triage probe
+
+- Status: survives triage. The allocation-light polygon segment-distance kernel cleared both triage conditions on the exact Node.js 22.18.0 development row.
+- Candidate branch and commit: `experiment/p1-segment-kernel-triage`, `b92885d4f0fea7c1d985959bdde07c17a95ebada` (`perf: prototype allocation-light polygon distance`). The branch and separate worktree remain present; candidate source was not merged, cherry-picked, pushed, promoted, or applied to `master`.
+- Correctness: `npx tsc --noEmit`, `npm test` (5 files, 76 tests), `npm run build`, and `npx tsc -p tsconfig.benchmarks.json` all passed.
+- Paired medians: 662.45 us baseline / 211.50 us candidate (-68.07306211789177%); 753.10 us / 205.10 us (-72.76590094276843%); 671.10 us / 206.80 us (-69.18492028013165%).
+- Median of medians: 671.10 us baseline and 206.80 us candidate, a -69.18492028013165% change. All three paired changes were negative.
+- Decision: `P1` consumes exactly one triage probe and survives. The full experiment's confidence-interval and affected-row regression decisions were not applied here.
+- Probe budget: one of three triage probes consumed; two triage probes remain. Full preregistered experiment budget remains two.
+- Evidence: `reports/geospace-p1-triage-probe.md` and `experiments/p1-triage/`.
+- Holdout: Node.js 24 was not run; the holdout remains sealed and unconsumed.
+- Next action: preregister a full P1 experiment for exact candidate `b92885d4f0fea7c1d985959bdde07c17a95ebada`, including five paired Node.js 22 development runs, the paired-difference interval, and the affected non-holdout regression gate. Do not promote or consume the Node.js 24 holdout without the separate user authorization required by this ledger.
+- First evidence artifact commit: pending.
