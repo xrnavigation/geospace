@@ -43,4 +43,4 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Next action: begin the profile-backed `P1` triage probe in a separate campaign step; this repair does not execute or preregister it.
 - Repair report: `reports/geospace-polygon-distance-profile-repair.md`.
 - Superseded failed-profile report and artifact commit: `reports/geospace-polygon-distance-profile.md`, `a304cce88b099445a13b272ffd81046d32336069`.
-- Repair commit: pending.
+- Repair commit: `18567ad1923b71c0c6007258050fe0b9ebae93ae`.

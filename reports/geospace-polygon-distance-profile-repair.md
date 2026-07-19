@@ -102,4 +102,4 @@ This driver reproduces the exact polygon fixture and public method in the profil
 
 Next action: begin the profile-backed `P1` triage probe in a separate campaign step. This repair does not execute or preregister that probe, and the three-probe budget remains unchanged.
 
-Repair commit: pending
+Repair commit: `18567ad1923b71c0c6007258050fe0b9ebae93ae`
