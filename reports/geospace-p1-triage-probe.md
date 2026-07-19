@@ -111,4 +111,4 @@ The candidate remains only on `experiment/p1-segment-kernel-triage`. It was not 
 
 Preregister a full P1 experiment for exact candidate commit `b92885d4f0fea7c1d985959bdde07c17a95ebada`, including the campaign's five paired Node.js 22 development runs, paired-difference interval, and affected non-holdout regression gate. Do not promote the candidate or run the Node.js 24 holdout without the separate user authorization required by the campaign ledger.
 
-First evidence artifact commit: pending
+First evidence artifact commit: `d76f17e7af7b15eb3dd36dddfc68acc8eae8a866`

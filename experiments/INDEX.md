@@ -57,4 +57,4 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Evidence: `reports/geospace-p1-triage-probe.md` and `experiments/p1-triage/`.
 - Holdout: Node.js 24 was not run; the holdout remains sealed and unconsumed.
 - Next action: preregister a full P1 experiment for exact candidate `b92885d4f0fea7c1d985959bdde07c17a95ebada`, including five paired Node.js 22 development runs, the paired-difference interval, and the affected non-holdout regression gate. Do not promote or consume the Node.js 24 holdout without the separate user authorization required by this ledger.
-- First evidence artifact commit: pending.
+- First evidence artifact commit: `d76f17e7af7b15eb3dd36dddfc68acc8eae8a866`.
