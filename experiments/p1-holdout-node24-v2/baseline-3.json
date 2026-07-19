@@ -1,0 +1,39 @@
+{
+  "files": [
+    {
+      "filepath": "C:/Users/Q/src/audiom/geospace-p1-holdout/benchmarks/core.bench.ts",
+      "groups": [
+        {
+          "fullName": "benchmarks/core.bench.ts > geometry operations",
+          "benchmarks": [
+            {
+              "id": "-462543565_0_1",
+              "name": "polygon-to-polygon distance, 128 x 128 vertices",
+              "rank": 1,
+              "rme": 0.36095008672791995,
+              "samples": [],
+              "totalTime": 500.04820000000103,
+              "min": 0.6313999999999851,
+              "max": 0.8063999999999965,
+              "hz": 1501.8552211566775,
+              "period": 0.6658431424766991,
+              "mean": 0.6658431424766991,
+              "variance": 0.0011291872295784182,
+              "sd": 0.03360338122240704,
+              "sem": 0.0012262047960416088,
+              "df": 750,
+              "critical": 1.96,
+              "moe": 0.002403361400241553,
+              "p75": 0.6924999999999955,
+              "p99": 0.7779000000000451,
+              "p995": 0.7925999999999931,
+              "p999": 0.8063999999999965,
+              "sampleCount": 751,
+              "median": 0.6486999999999625
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

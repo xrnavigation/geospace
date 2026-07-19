@@ -254,3 +254,45 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Exact next action: commit this frozen preregistration and ledger entry with
   subject `experiments: preregister corrected Node 24 P1 holdout`, then begin
   the exact Node.js 24 setup sequence.
+
+### Corrected P1 Node 24 holdout v2 result
+
+- Corrected preregistration commit:
+  `0853a3377d8b7cc2613618db226e81dc8c8ea52c`.
+- Setup: exact Node.js `v24.16.0`; `npm ci` passed from candidate lock blob
+  `69678c6fd1875e9432cbb0fff863a60fe3caa8c7`; tracked status was clean and
+  local `node_modules/.bin/tsc` existed before the gates.
+- Candidate gates: `npx tsc --noEmit`, `npm test` (5 files, 76 tests),
+  `npm run build`, and `npx tsc -p tsconfig.benchmarks.json` all passed in the
+  fixed order.
+- Measurements: all ten exact alternating commands succeeded with their
+  required restores, invariant checks, and rebuilds; none was retried or
+  replaced.
+- Baseline run medians:
+  `669.7000000000344`, `681.1000000000149`, `648.6999999999625`,
+  `676.9499999999766`, and `666.7999999999665 us`.
+- Candidate run medians:
+  `204.90000000006603`, `205.80000000001064`, `206.39999999997372`,
+  `202.40000000001146`, and `212.59999999995216 us`.
+- Median of medians: `669.7000000000344 us` baseline and
+  `205.80000000001064 us` candidate; unrounded change
+  `-69.26982230849633%`.
+- Paired differences:
+  `-464.79999999996835`, `-475.3000000000043`, `-442.2999999999888`,
+  `-474.54999999996517`, and `-454.20000000001437 us`.
+- Fixed paired interval: mean `-462.2299999999882 us`, sample standard
+  deviation `14.061454405566533 us`, and two-sided 95% interval
+  `[-479.6896016977639, -444.77039830221247] us`.
+- Performance decision: PASS. Both frozen unrounded conditions passed.
+- Adversary: no project `CLAUDE.md` exists, so project-principle mapping is a
+  GAP. The six explicit checks found no promotion-rejecting fixture
+  special-casing, configured-distance bypass, semantic change, evaluator
+  leakage, build mismatch, or measurement artifact.
+- Verifier decision: recommend promotion of exact candidate
+  `b92885d4f0fea7c1d985959bdde07c17a95ebada` to the parent promotion actor.
+  No integration action was performed here.
+- Terminal proof: detached holdout remained tracked-clean at exact candidate;
+  host runtime was restored and verified exact `v22.18.0`; worktree remains
+  available for parent verification.
+- Evidence: `reports/geospace-p1-node24-holdout-v2.md` and the ten raw JSON
+  files under `experiments/p1-holdout-node24-v2/`.
