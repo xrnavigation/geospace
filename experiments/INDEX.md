@@ -25,3 +25,5 @@ The code claims and candidate mechanisms are sourced from the [Geospace performa
 | 3 | P2 | indexed facet branch-and-bound | candidate |
 
 A CPU/allocation profile of the real development row is required before the first probe and may reprioritize or kill candidates. Do not run the profile, benchmark, or any candidate in this task.
+
+Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
