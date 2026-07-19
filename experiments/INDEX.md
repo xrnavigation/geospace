@@ -134,3 +134,40 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
   do not promote or consume the holdout before that authorization.
 - First evidence artifact commit:
   `c7f3a4a1e612629188c0222f4e7b99d7729f5890`.
+
+### P1 Node 24 holdout preregistration
+
+- Status: preregistered only; no Node.js 24 gate, benchmark command, or
+  holdout data was opened before this record.
+- Runtime: exact Node.js `v24.16.0` under NVM, followed by mandatory host
+  restoration to exact `v22.18.0`, including on failure.
+- Exact baseline and candidate: `31fac31e193ea790cda6d1ff09223f4049d6ed6c`
+  and `b92885d4f0fea7c1d985959bdde07c17a95ebada`.
+- Isolated checkout: clean detached worktree at
+  `C:\Users\Q\src\audiom\geospace-p1-holdout`, created at exact candidate
+  only after the preregistration commit; an already-existing path is a
+  terminal stop, not permission to substitute.
+- Target and runs: exact `polygon-to-polygon distance, 128 x 128 vertices`;
+  five alternating baseline/candidate pairs in fixed order, with
+  `npm run benchmark` rebuilding after each restore and no retry or replacement
+  of a failed timing command.
+- Raw evidence: fixed main-worktree paths
+  `experiments/p1-holdout-node24/baseline-1.json` through `baseline-5.json`
+  and `candidate-1.json` through `candidate-5.json`.
+- Analysis: unchanged committed `experiments/p1-full/summarize.mjs`; pass only
+  if candidate median of five medians is at least 10% lower and the unrounded
+  fixed 95% paired-difference interval using `t = 2.7764451051977987` has an
+  upper endpoint below zero.
+- Candidate gates before timing, in order: `npx tsc --noEmit`, `npm test`,
+  `npm run build`, and `npx tsc -p tsconfig.benchmarks.json`.
+- Evaluator seal: no candidate diff under `benchmarks/`, `package.json`,
+  `tsconfig.benchmarks.json`, or the committed summarizer. The affected
+  non-holdout set remains empty only while exact source-scope and benchmark
+  call-graph confirmation still passes.
+- Promotion verification: a read-only adversary review must reject fixture
+  special-casing, configured-distance bypass, semantic change, evaluator
+  leakage, or measurements of different builds before recommending promotion.
+- Terminal checkout: restore exact candidate, require tracked-clean detached
+  worktree, leave it available for parent verification, and do not merge,
+  cherry-pick, push, or alter master source.
+- Preregistration: `experiments/p1-holdout-node24/PREREGISTRATION.md`.
