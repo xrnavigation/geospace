@@ -1,23 +1,17 @@
-import {
+import type {
   Feature,
   FeatureCollection,
+  Geometry as GeoJSONGeometry,
   Point as GeoJSONPoint,
   MultiPoint,
   Polygon as GeoJSONPolygon,
   LineString,
   Position,
-  GeoJsonProperties,
 } from "geojson";
 
 import {
   GeoJSONOptions,
-  ValidationResult,
-  ValidatedFeature,
-  ValidatedFeatureCollection,
   ValidationError,
-  ConversionError,
-  isFeature,
-  isGeoJSONPosition,
   isGeoJSONPoint,
   isGeoJSONLineString,
   isGeoJSONPolygon,
@@ -32,13 +26,13 @@ import {
   isLineSegment,
   isPoint,
   isPolygon,
-  isMultiPoint,
   LineSegment2D,
   Point2D,
   Polygon2D,
   MultiPoint2D,
   RTree,
   SpatialItem,
+  BoundingBox,
   getBBox,
 } from "./geometry.js";
 
@@ -80,7 +74,7 @@ export class GeoJSONCore {
   static toGeoJSON(
     geometry: Geometry,
     options?: GeoJSONOptions
-  ): ConversionResult<Feature<SupportedGeoJSON>> {
+  ): ConversionResult<Feature<SupportedGeoJSON, Record<string, unknown>>> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const warnings: string[] = [];
     let geoJsonGeometry: SupportedGeoJSON;
@@ -132,15 +126,14 @@ export class GeoJSONCore {
           coordinates: [exterior, ...holes],
         };
       } else {
-        throw new Error(
-          `Unsupported geometry type: ${(geometry as any).constructor.name}`
-        );
+        throw new Error("Unsupported geometry type");
       }
-    } catch (err: any) {
-      throw new Error(`GeoJSON conversion failed: ${err.message}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new Error(`GeoJSON conversion failed: ${message}`);
     }
 
-    const feature: Feature<SupportedGeoJSON> = {
+    const feature: Feature<SupportedGeoJSON, Record<string, unknown>> = {
       type: "Feature",
       geometry: geoJsonGeometry,
       properties: {},
@@ -162,7 +155,10 @@ export class GeoJSONCore {
    * @returns A ConversionResult containing the converted geometry and any warnings.
    */
   static fromGeoJSON(
-    feature: Feature<SupportedGeoJSON, GeoJsonProperties>,
+    feature: Feature<
+      GeoJSONGeometry | null,
+      Record<string, unknown> | null
+    >,
     options?: GeoJSONOptions
   ): ConversionResult<Geometry> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
@@ -185,30 +181,29 @@ export class GeoJSONCore {
       feature.properties?.geometryType === "Circle" &&
       typeof feature.properties?.radius === "number"
     ) {
-      const { coordinates } = feature.geometry as GeoJSONPoint;
+      const { coordinates } = feature.geometry;
       const [x, y] = this.fromPosition(coordinates, opts);
       return {
         value: new Circle2D({ x, y }, feature.properties.radius),
         warnings,
       };
     }
-    const geo = feature.geometry as SupportedGeoJSON;
+    const geo = feature.geometry;
 
     switch (geo.type) {
       case "Point": {
-        const { coordinates } = geo as GeoJSONPoint;
+        const { coordinates } = geo;
         const [x, y] = this.fromPosition(coordinates, opts);
         return { value: new Point2D(x, y), warnings };
       }
       case "LineString": {
-        const lineGeom = geo as LineString;
-        if (lineGeom.coordinates.length < 2) {
+        if (geo.coordinates.length < 2) {
           throw new ValidationError(
             "LineString must have at least two coordinates"
           );
         }
-        const start = lineGeom.coordinates[0];
-        const end = lineGeom.coordinates[1];
+        const start = geo.coordinates[0];
+        const end = geo.coordinates[1];
         const [x1, y1] = this.fromPosition(start, opts);
         const [x2, y2] = this.fromPosition(end, opts);
         return {
@@ -217,11 +212,10 @@ export class GeoJSONCore {
         };
       }
       case "Polygon": {
-        const polyGeom = geo as GeoJSONPolygon;
-        if (polyGeom.coordinates.length < 1) {
+        if (geo.coordinates.length < 1) {
           throw new ValidationError("Polygon must contain at least one ring");
         }
-        const exteriorRing = polyGeom.coordinates[0];
+        const exteriorRing = geo.coordinates[0];
         let exterior = exteriorRing.slice();
         if (
           exterior.length > 1 &&
@@ -234,7 +228,7 @@ export class GeoJSONCore {
           const [x, y] = this.fromPosition(pos, opts);
           return { x, y };
         });
-        const holes = polyGeom.coordinates.slice(1).map((ring) => {
+        const holes = geo.coordinates.slice(1).map((ring) => {
           let r = ring.slice();
           if (
             r.length > 1 &&
@@ -254,13 +248,12 @@ export class GeoJSONCore {
         };
       }
       case "MultiPoint": {
-        const multi = geo as MultiPoint;
-        if (multi.coordinates.length < 1) {
+        if (geo.coordinates.length < 1) {
           throw new ValidationError(
             "MultiPoint must have at least one coordinate"
           );
         }
-        const points = multi.coordinates.map((coord) => {
+        const points = geo.coordinates.map((coord) => {
           const [x, y] = this.fromPosition(coord, opts);
           return new Point2D(x, y);
         });
@@ -285,11 +278,13 @@ export class GeoJSONCore {
     items: Array<{
       id: string;
       geometry: Geometry;
-      metadata?: any;
-      getBoundingBox: () => any;
+      metadata?: Record<string, unknown>;
+      getBoundingBox: () => BoundingBox;
     }>,
     options?: GeoJSONOptions
-  ): ConversionResult<FeatureCollection> {
+  ): ConversionResult<
+    FeatureCollection<SupportedGeoJSON, Record<string, unknown>>
+  > {
     const warnings: string[] = [];
     const features = items.map((item) => {
       const result = GeoJSONCore.toGeoJSON(item.geometry, options);
@@ -318,23 +313,25 @@ export class GeoJSONCore {
    * @param tree An instance of RTree containing spatial items.
    * @returns An object with 'loadGeoJSON' and 'toGeoJSON' methods.
    */
-  static enhanceRTree<T extends SpatialItem>(tree: RTree<T>) {
+  static enhanceRTree(tree: RTree<SpatialItem>) {
     return {
       loadGeoJSON(
-        collection: FeatureCollection,
+        collection: FeatureCollection<
+          GeoJSONGeometry,
+          Record<string, unknown> | null
+        >,
         options?: GeoJSONOptions & {
           createId?: () => string;
-          transformProperties?: (props: GeoJsonProperties) => any;
+          transformProperties?: (
+            props: Record<string, unknown> | null
+          ) => Record<string, unknown> | null;
         }
       ): ConversionResult<void> {
         const warnings: string[] = [];
-        const items: T[] = [];
+        const items: SpatialItem[] = [];
         for (const feature of collection.features) {
           try {
-            const result = GeoJSONCore.fromGeoJSON(
-              feature as Feature<SupportedGeoJSON>,
-              options
-            );
+            const result = GeoJSONCore.fromGeoJSON(feature, options);
             if (result.warnings) {
               warnings.push(...result.warnings);
             }
@@ -347,9 +344,10 @@ export class GeoJSONCore {
                 ? options.transformProperties(feature.properties)
                 : feature.properties,
               getBoundingBox: () => getBBox(result.value),
-            } as unknown as T);
-          } catch (err: any) {
-            warnings.push(`Skipped feature: ${err.message}`);
+            });
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            warnings.push(`Skipped feature: ${message}`);
           }
         }
         tree.bulkLoad(items);
@@ -372,7 +370,7 @@ export class GeoJSONCore {
     options: GeoJSONOptions
   ): GeoJSONPolygon {
     const { center, radius } = circle;
-    const segments = options.circleSegments!;
+    const segments = options.circleSegments ?? 64;
     const coords: Position[] = [];
     for (let i = 0; i <= segments; i++) {
       const angle = (2 * Math.PI * i) / segments;
@@ -384,7 +382,7 @@ export class GeoJSONCore {
   }
 
   private static closeRing(coords: Position[]): Position[] {
-    const ring = coords as number[][];
+    const ring = coords;
     if (ring.length === 0) return ring;
     const first = ring[0];
     const last = ring[ring.length - 1];
@@ -399,7 +397,7 @@ export class GeoJSONCore {
     options: GeoJSONOptions
   ): Position {
     return options.transformCoordinates
-      ? (options.transformCoordinates(coord) as Position)
+      ? options.transformCoordinates(coord)
       : coord;
   }
 
@@ -443,7 +441,9 @@ export class GeoJSONBuilder {
     return this;
   }
 
-  build(options?: GeoJSONOptions): ConversionResult<Feature<SupportedGeoJSON>> {
+  build(
+    options?: GeoJSONOptions
+  ): ConversionResult<Feature<SupportedGeoJSON, Record<string, unknown>>> {
     return GeoJSONCore.toGeoJSON(this.geometry, { ...this.options, ...options });
   }
 }
@@ -453,12 +453,15 @@ export class GeoJSON {
     return new GeoJSONBuilder(geometry);
   }
   static to(
-    feature: Feature<SupportedGeoJSON, GeoJsonProperties>,
+    feature: Feature<
+      GeoJSONGeometry | null,
+      Record<string, unknown> | null
+    >,
     options?: GeoJSONOptions
   ): ConversionResult<Geometry> {
     return GeoJSONCore.fromGeoJSON(feature, options);
   }
-  static enhanceRTree<T extends SpatialItem>(tree: RTree<T>) {
+  static enhanceRTree(tree: RTree<SpatialItem>) {
     return GeoJSONCore.enhanceRTree(tree);
   }
 }

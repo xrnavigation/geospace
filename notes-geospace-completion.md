@@ -99,6 +99,24 @@ Documentation/API-convergence slice:
 - `npm test`: pass, 65 tests across 4 files;
 - `npm run build`: pass.
 
+Post-packaging type-safety baseline:
+
+- `npx --yes type-coverage --detail`: 97.51% (4820 of 4943 identifiers), with 123 uncovered identifiers.
+- The denominator differs from the earlier 97.52% audit because the real ESM/CommonJS package entrypoints are now part of the TypeScript program.
+- The next single target is `GeoJSONCore`: redundant geometry assertions, `any` catches, inline `any` item/property shapes, the false generic R-tree item cast, and non-null/result assertions in that file.
+
+`GeoJSONCore` type-safety slice:
+
+- Replaced all explicit `any`, type assertions, and non-null assertions in `src/geojsonConverter.ts` with discriminant narrowing, `unknown` error handling, nullish defaults, and direct return types.
+- Broadened GeoJSON input to the real external `Feature` boundary and retained runtime rejection of unsupported geometry variants.
+- Deleted the false generic R-tree item cast; `enhanceRTree` now loads the existing `SpatialItem` contract directly.
+- Replaced inline `any` metadata/callback shapes with `Record<string, unknown>` and existing `BoundingBox`/GeoJSON contracts.
+- Removed imports made obsolete by those deletions.
+- `npx tsc --noEmit`: pass;
+- `npm test`: pass, 65 tests across 4 files;
+- `npx --yes type-coverage --detail`: improved to 97.75% (4827 of 4938 identifiers), reducing uncovered identifiers from 123 to 111;
+- `npm run build`: pass.
+
 ## Next action
 
-Continue from the measured 97.52% type-coverage result. Identify one coherent `any` boundary family whose replacement can produce a kept measured reduction without changing runtime behavior, then complete or fully revert that one source slice according to the exact-convergence and Git-ledger rules.
+Inspect `src/geojson.types.ts` as the next isolated boundary family. Define a sound `unknown`-narrowing slice only if its public predicates can remain truthful without adding an unverified validator framework; otherwise report and choose no substitute target.
