@@ -205,3 +205,52 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
   remains available.
 - Record: `reports/geospace-p1-node24-holdout-attempt-1.md`.
 - Next action: `new preregistration with npm ci before gates`.
+
+### Corrected P1 Node 24 holdout v2 preregistration
+
+- Status: preregistered only; no Node.js 24 setup, gate, benchmark command, or
+  holdout data was opened before this record.
+- Attempt 1 remains classified exactly as
+  `invalid setup procedure; holdout data unopened; candidate not evaluated`;
+  its frozen procedure will not be retried.
+- Exact integration, baseline, and candidate identities:
+  `e33fb9b7e184f9ed13cce0f606f0e6f271c274ad`,
+  `31fac31e193ea790cda6d1ff09223f4049d6ed6c`, and
+  `b92885d4f0fea7c1d985959bdde07c17a95ebada`.
+- Isolated checkout: existing clean detached worktree
+  `C:\Users\Q\src\audiom\geospace-p1-holdout` at the exact candidate.
+- Runtime and setup: switch from verified host Node.js `v22.18.0` to exact
+  `v24.16.0`; run `npm ci`; require tracked-clean candidate state and local
+  `node_modules/.bin/tsc` before any gate; restore exact `v22.18.0`
+  unconditionally, including on failure.
+- Package-lock identity: candidate blob
+  `69678c6fd1875e9432cbb0fff863a60fe3caa8c7`.
+- Candidate gates, in order: `npx tsc --noEmit`, `npm test`,
+  `npm run build`, and `npx tsc -p tsconfig.benchmarks.json`.
+- Target and runs: exact
+  `polygon-to-polygon distance, 128 x 128 vertices`; five alternating
+  baseline/candidate pairs, each rebuilt by `npm run benchmark`, with no
+  retry or replacement of a failed timing.
+- Raw evidence paths:
+  `experiments/p1-holdout-node24-v2/baseline-1.json` through `baseline-5.json`
+  and `candidate-1.json` through `candidate-5.json`.
+- Analysis: byte-identical reuse of committed
+  `experiments/p1-full/summarize.mjs`, blob
+  `f21c9a43500f6e058b6fd07227ed092c6233efda`; pass only if the candidate
+  median of five medians is at least 10% lower and the unrounded paired 95%
+  interval using `t = 2.7764451051977987` has upper endpoint below zero.
+- Seals: evaluator diff empty; exact candidate scope only
+  `src/geometry.tests.ts` and `src/geometry.ts`; exactly one target benchmark
+  call using the two 128-vertex fixtures; affected non-holdout set empty.
+- Promotion review: read-only adversary check for fixture special-casing,
+  configured-distance bypass, semantic change, evaluator leakage,
+  baseline/candidate build mismatch, and measurement artifact.
+- Terminal constraints: restore exact candidate and tracked-clean detached
+  state; leave the worktree for parent verification; do not merge,
+  cherry-pick, push, alter master source, or stage `node_modules` or any
+  pre-existing dirty/untracked path.
+- Preregistration:
+  `experiments/p1-holdout-node24-v2/PREREGISTRATION.md`.
+- Exact next action: commit this frozen preregistration and ledger entry with
+  subject `experiments: preregister corrected Node 24 P1 holdout`, then begin
+  the exact Node.js 24 setup sequence.
