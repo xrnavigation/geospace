@@ -3,10 +3,13 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   build: {
     lib: {
-      entry: 'src/geometry.ts',
+      entry: 'src/index.ts',
       name: 'geometry',
-      fileName: (format: string) => `geometry.${format}.js`,
-      formats: ['es', 'umd']
+      fileName: (format: string) => {
+        if (format === 'cjs') return 'geometry.cjs'
+        return `geometry.${format}.js`
+      },
+      formats: ['es', 'cjs', 'umd']
     },
     sourcemap: true,
     minify: false,

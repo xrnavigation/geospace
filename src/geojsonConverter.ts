@@ -22,7 +22,7 @@ import {
   isGeoJSONLineString,
   isGeoJSONPolygon,
   isGeoJSONMultiPoint,
-} from "./geojson.types";
+} from "./geojson.types.js";
 
 import {
   Circle,
@@ -40,7 +40,7 @@ import {
   RTree,
   SpatialItem,
   getBBox,
-} from "./geometry";
+} from "./geometry.js";
 
 export type SupportedGeoJSON =
   | GeoJSONPoint
