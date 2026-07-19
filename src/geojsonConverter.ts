@@ -54,7 +54,7 @@ export interface ConversionResult<T> {
 }
 
 /**
- * GeoJSONConverter provides methods for converting between custom geometry objects
+ * GeoJSONCore provides methods for converting between custom geometry objects
  * (such as Point2D, LineSegment2D, Circle2D, and Polygon2D) and GeoJSON features.
  *
  * Methods:

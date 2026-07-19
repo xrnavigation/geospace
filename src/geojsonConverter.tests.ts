@@ -1,6 +1,6 @@
 import type { Position } from "geojson";
 import { describe, expect, it } from "vitest";
-import { GeoJSONConverter, GeoJSON } from "./geojsonConverter";
+import { GeoJSON } from "./geojsonConverter";
 import {
   Circle2D,
   LineSegment2D,
@@ -99,7 +99,7 @@ describe("GeoJSON Fluent API Builder", () => {
   });
 });
 
-describe("GeoJSONConverter with RTree", () => {
+describe("GeoJSON with RTree", () => {
   it("loads and exports GeoJSON FeatureCollection", () => {
     const items = [
       {
@@ -133,7 +133,7 @@ describe("GeoJSONConverter with RTree", () => {
   });
 });
 
-describe("GeoJSONConverter Edge Cases", () => {
+describe("GeoJSON edge cases", () => {
   it("throws error when feature has no geometry", () => {
     expect(() => {
       GeoJSON.to({ type: "Feature", properties: {} } as any);

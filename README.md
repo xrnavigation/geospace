@@ -106,21 +106,13 @@ const item: SpatialItem = {
 
 ### Numerical Stability
 
-The library uses epsilon-based comparisons to handle floating-point arithmetic:
+The library uses the exported `EPSILON` constant for floating-point comparisons:
 
 ```typescript
-// Default epsilon: 1e-10
-const EPSILON = 1e-10;
+import { EPSILON } from '@xrnavigation/geospace';
 
 // Example of stable point-on-line test
 const isOnLine = engine.pointToLineDistance(point, line) < EPSILON;
-
-// Custom epsilon for specific use cases
-const customEngine = new GeometryEngine(
-  distance,
-  undefined,
-  1e-6 // Custom epsilon
-);
 ```
 
 ## Examples
@@ -167,15 +159,15 @@ In addition to direct raycasting functions (raySegmentIntersection, rayCircleInt
 For example, using direct functions:
 
 ```typescript
-import { Ray, raySegmentIntersection, rayCircleIntersection, rayPolygonIntersection } from '@xrnavigation/geospace';
+import { Circle2D, LineSegment2D, Polygon2D, Ray, raySegmentIntersection, rayCircleIntersection, rayPolygonIntersection } from '@xrnavigation/geospace';
 
 const ray: Ray = { origin: { x: 0, y: 0 }, direction: { x: 1, y: 0 } };
 
-const seg: LineSegment = { start: { x: 5, y: -1 }, end: { x: 5, y: 1 } };
+const seg = new LineSegment2D({ x: 5, y: -1 }, { x: 5, y: 1 });
 const interSeg = raySegmentIntersection(ray, seg);
 console.log("Ray-segment intersection:", interSeg);
 
-const circle: Circle = { center: { x: 5, y: 0 }, radius: 1 };
+const circle = new Circle2D({ x: 5, y: 0 }, 1);
 const interCircle = rayCircleIntersection(ray, circle);
 console.log("Ray-circle intersection:", interCircle);
 
@@ -187,14 +179,14 @@ console.log("Ray-polygon intersection:", interPoly);
 Alternatively, using the unified GeometryEngine methods:
 
 ```typescript
-import { GeometryEngine, Point2D, Circle2D, Polygon2D, LineSegment, euclideanDistance } from '@xrnavigation/geospace';
+import { GeometryEngine, Point2D, Circle2D, Polygon2D, LineSegment2D, euclideanDistance } from '@xrnavigation/geospace';
 
 const engine = new GeometryEngine(euclideanDistance);
 
 const rayOrigin = new Point2D(0, 0);
 const rayDirection = { x: 1, y: 0 };
 
-const seg: LineSegment = { start: { x: 2, y: -1 }, end: { x: 2, y: 1 } };
+const seg = new LineSegment2D({ x: 2, y: -1 }, { x: 2, y: 1 });
 const resultSeg = engine.raycast(rayOrigin, rayDirection, seg);
 console.log("Unified raycast line segment:", resultSeg);
 
@@ -209,11 +201,10 @@ console.log("Unified raycast polygon:", resultPoly);
 const resAll = engine.raycastAll(rayOrigin, rayDirection, [seg, circle, polygon]);
 console.log("Unified raycast all (closest):", resAll);
 ```
-```
 
 ## GeoJSON Conversion
 
-The library also provides robust conversion methods to and from GeoJSON via the GeoJSONConverter class.
+The library provides conversion methods to and from GeoJSON through the `GeoJSON` fluent API.
 These methods allow you to convert geometry objects (such as Point2D, LineSegment2D, Circle2D, and Polygon2D)
 into GeoJSON Features and FeatureCollections, and to reconstruct geometry objects from GeoJSON data.
 You can also integrate GeoJSON conversion with spatial indices like the RTree for enhanced import/export capabilities.
@@ -221,13 +212,13 @@ You can also integrate GeoJSON conversion with spatial indices like the RTree fo
 Example usage:
 
 ```typescript
-import { GeoJSONConverter, Point2D } from '@xrnavigation/geospace';
+import { GeoJSON, Point2D } from '@xrnavigation/geospace';
 
 const point = new Point2D(1, 2);
-const geoJSONFeature = GeoJSONConverter.toGeoJSON(point);
+const geoJSONFeature = GeoJSON.from(point).build().value;
 console.log("GeoJSON Feature:", geoJSONFeature);
 
-const converted = GeoJSONConverter.fromGeoJSON(geoJSONFeature.geometry);
+const converted = GeoJSON.to(geoJSONFeature).value;
 console.log("Converted Geometry:", converted);
 ```
 
@@ -248,22 +239,16 @@ The library requires TypeScript 4.8+ and these compiler options:
 
 ## Error Handling
 
-The library throws typed errors for various conditions:
+Geometry constructors throw standard `Error` instances for invalid inputs. GeoJSON validation failures use the exported `ValidationError` type.
 
 ```typescript
 try {
   const polygon = new Polygon2D([{x:0,y:0}, {x:1,y:1}]); 
-} catch (e) {
-  if (e instanceof GeometryError) {
-    console.error("Invalid geometry:", e.message);
+} catch (error) {
+  if (error instanceof Error) {
+    console.error("Invalid geometry:", error.message);
   }
 }
-
-// Custom error types
-export class GeometryError extends Error {}
-export class InvalidPolygonError extends GeometryError {}
-export class InvalidCircleError extends GeometryError {}
-export class TransformError extends GeometryError {}
 ```
 
 ## Troubleshooting
@@ -364,13 +349,13 @@ console.log("Ray-Segment Intersection:", intersection);
 
 ### GeoJSON Conversion
 ```typescript
-import { GeoJSONConverter, Point2D } from '@xrnavigation/geospace';
+import { GeoJSON, Point2D } from '@xrnavigation/geospace';
 
 const geoPoint = new Point2D(1, 2);
-const feature = GeoJSONConverter.toGeoJSON(geoPoint);
+const feature = GeoJSON.from(geoPoint).build().value;
 console.log("GeoJSON Feature:", feature);
 
-const converted = GeoJSONConverter.fromGeoJSON(feature.geometry);
+const converted = GeoJSON.to(feature).value;
 console.log("Converted Geometry:", converted);
 ```
 

@@ -79,6 +79,26 @@ Final packaging-slice evidence:
 - `npm pack --dry-run --json`: pass, with both `dist/index.d.ts` and `dist/index.d.cts` and their complete referenced declaration graph in the tarball;
 - `npx --yes @arethetypeswrong/cli --pack . --format json`: pass with `"problems": {}` across Node10, Node16 CommonJS, Node16 ESM, and bundler resolution.
 
+Documentation/API audit findings:
+
+- The actual root API exports `GeoJSON`, `GeoJSONBuilder`, and `GeoJSONCore`; there is no `GeoJSONConverter` export.
+- Before the convergence slice, `README.md` taught `GeoJSONConverter.toGeoJSON`/`fromGeoJSON` in two sections, and `src/geojsonConverter.tests.ts` imported the nonexistent old name even though it did not use it.
+- The `GeoJSONCore` class docstring called the class `GeoJSONConverter`.
+- The README had an unmatched extra code fence after the unified raycasting example.
+- The numerical-stability example passes a nonexistent third epsilon argument to `GeometryEngine`; the implementation exposes the fixed `EPSILON` constant and a two-argument constructor.
+- The error-handling section claims `GeometryError`, `InvalidPolygonError`, `InvalidCircleError`, and `TransformError`, none of which exist. Geometry constructors currently throw ordinary `Error`; GeoJSON validation exposes `GeoJSONError` and `ValidationError`.
+
+Documentation/API-convergence slice:
+
+- Both README GeoJSON examples now use the shipped `GeoJSON.from(...).build().value` and `GeoJSON.to(...).value` contracts.
+- Direct and unified raycasting examples now instantiate `LineSegment2D` and `Circle2D` rather than assigning incomplete plain objects to bounded interfaces.
+- The numerical-stability section imports the actual fixed `EPSILON` constant and no longer invents a third `GeometryEngine` constructor argument.
+- The error-handling section now describes the actual standard geometry errors and exported GeoJSON validation error.
+- Removed the unmatched Markdown fence and converged the core docstring, stale test import, and test suite names from `GeoJSONConverter` to `GeoJSONCore`/`GeoJSON`.
+- `npx tsc --noEmit`: pass;
+- `npm test`: pass, 65 tests across 4 files;
+- `npm run build`: pass.
+
 ## Next action
 
-After the packaging slice, continue the completion audit from the remaining type-safety findings and verify README examples/claims against the actual root exports and runtime behavior. Define and complete only the next proven slice; do not treat the clean package artifact as full objective completion.
+Continue from the measured 97.52% type-coverage result. Identify one coherent `any` boundary family whose replacement can produce a kept measured reduction without changing runtime behavior, then complete or fully revert that one source slice according to the exact-convergence and Git-ledger rules.
