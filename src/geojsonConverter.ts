@@ -106,7 +106,7 @@ export class GeoJSONCore {
             this.toPosition([geometry.end.x, geometry.end.y], opts),
           ],
         };
-      } else if (isCircle(geometry) || (geometry && typeof geometry.radius === "number" && geometry.center)) {
+      } else if (isCircle(geometry)) {
         if (opts.circleMode === "polygon") {
           geoJsonGeometry = this.circleToPolygon(geometry, opts);
         } else {
@@ -331,7 +331,7 @@ export class GeoJSONCore {
         const items: T[] = [];
         for (const feature of collection.features) {
           try {
-            const result = GeoJSONConverter.fromGeoJSON(
+            const result = GeoJSONCore.fromGeoJSON(
               feature as Feature<SupportedGeoJSON>,
               options
             );
@@ -342,11 +342,11 @@ export class GeoJSONCore {
               id:
                 feature.id?.toString() ||
                 (options?.createId ? options.createId() : crypto.randomUUID()),
-              geometry: result.geometry,
+              geometry: result.value,
               metadata: options?.transformProperties
                 ? options.transformProperties(feature.properties)
                 : feature.properties,
-              getBoundingBox: () => getBBox(result.geometry),
+              getBoundingBox: () => getBBox(result.value),
             } as unknown as T);
           } catch (err: any) {
             warnings.push(`Skipped feature: ${err.message}`);
@@ -423,23 +423,23 @@ export class GeoJSONBuilder {
   }
 
   withCircleAsPolygon(): this {
-    this.options.circleMode = 'polygon';
+    this.options = { ...this.options, circleMode: "polygon" };
     return this;
   }
 
   withCircleAsPointRadius(): this {
-    this.options.circleMode = 'point-radius';
+    this.options = { ...this.options, circleMode: "point-radius" };
     return this;
   }
 
   withCircleSegments(segments: number): this {
-    this.options.circleSegments = segments;
+    this.options = { ...this.options, circleSegments: segments };
     return this;
   }
 
 
   withCoordinateTransformation(transform: (pos: Position) => Position): this {
-    this.options.transformCoordinates = transform;
+    this.options = { ...this.options, transformCoordinates: transform };
     return this;
   }
 
