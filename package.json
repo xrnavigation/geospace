@@ -24,6 +24,7 @@
   "scripts": {
     "test": "vitest run",
     "benchmark": "npm run build --silent && tsc -p tsconfig.benchmarks.json && vitest bench --run",
+    "benchmark:summarize": "node benchmarks/summarize.mjs",
     "build": "vite build && tsc",
     "preview": "vite preview"
   },

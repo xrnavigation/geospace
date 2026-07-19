@@ -14,6 +14,12 @@ npm run benchmark -- --outputJson=benchmarks/results.json
 
 The JSON contains throughput, mean time, percentiles, relative margin of error, and sample counts for every row. Do not compare absolute numbers from different machines, Node.js versions, power modes, or background-load conditions.
 
+Summarize repeated runs with their median and spread:
+
+```bash
+npm run benchmark:summarize -- benchmarks/run-1.json benchmarks/run-2.json benchmarks/run-3.json benchmarks/run-4.json benchmarks/run-5.json
+```
+
 ## Workloads
 
 The deterministic suite currently covers:
