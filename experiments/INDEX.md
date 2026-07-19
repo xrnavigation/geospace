@@ -58,3 +58,40 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Holdout: Node.js 24 was not run; the holdout remains sealed and unconsumed.
 - Next action: preregister a full P1 experiment for exact candidate `b92885d4f0fea7c1d985959bdde07c17a95ebada`, including five paired Node.js 22 development runs, the paired-difference interval, and the affected non-holdout regression gate. Do not promote or consume the Node.js 24 holdout without the separate user authorization required by this ledger.
 - First evidence artifact commit: `d76f17e7af7b15eb3dd36dddfc68acc8eae8a866`.
+
+### P1 full experiment preregistration
+
+- Status: preregistered only for exact candidate
+  `b92885d4f0fea7c1d985959bdde07c17a95ebada` and exact baseline
+  `31fac31e193ea790cda6d1ff09223f4049d6ed6c`; no benchmark, correctness gate,
+  profiler, or Node.js 24 holdout was run in this step.
+- Target: `polygon-to-polygon distance, 128 x 128 vertices` on development
+  runtime Node.js `v22.18.0` only.
+- Fixed experiment: five alternating baseline/candidate development pairs,
+  median-of-five comparison, and a two-sided 95% paired-difference Student t
+  interval using fixed critical value `2.7764451051977987`.
+- Performance decision: candidate median of medians must be at least 10% lower
+  and the unrounded paired-difference interval upper endpoint must be below
+  `0 us`; all preconditions and four exact correctness gates must pass.
+- Affected non-holdout rows: empty. Candidate `b92885d` changes only
+  `GeometryEngine.polygonToPolygonDistance` and focused tests, and the target
+  row is the committed suite's only caller of that method. This must be
+  reconfirmed before timing; no unrelated full-suite regression measurement
+  is authorized.
+- Budget: preregistration consumes no full-experiment slot. The first timed
+  Node.js 22 development command consumes one of the two slots.
+- Candidate worktree:
+  `C:\Users\Q\src\audiom\geospace-p1-triage` on
+  `experiment/p1-segment-kernel-triage`. It was verified clean at the exact
+  candidate before preregistration, with the exact baseline as its parent and
+  the candidate not reachable from `master`.
+- Terminal states: `promotable development result` only when every fixed gate,
+  performance condition, affected-row confirmation, and clean exact-candidate
+  terminal check passes; otherwise `rejected full experiment`.
+- Preregistration: `experiments/p1-full/PREREGISTRATION.md`.
+- Holdout: Node.js 24 remains sealed. This preregistration does not authorize
+  promotion, merge, cherry-pick, push, or holdout execution.
+- Exact next action: execute the preconditions and four correctness gates in
+  the preregistered order for exact candidate `b92885d`; do not begin timing
+  unless all pass.
+- Preregistration artifact commit: pending record-only follow-up.
