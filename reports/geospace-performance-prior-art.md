@@ -146,3 +146,5 @@ Every entry is an **inference**, not a selected or proven optimization.
 ## Research conclusion
 
 The repo has a valid committed timing baseline but not causal attribution. Polygon distance has the clearest algorithmic prior art and an explicit quadratic implementation; R-tree bulk load has the largest elapsed time but also the weakest signal-to-noise and no internal attribution. The remaining rows expose plausible allocation/arithmetic reductions with small absolute ceilings. This survey intentionally does not choose a winner, run a benchmark, create a campaign ledger, or authorize a source experiment.
+
+Artifact commit: `9e232046e41d91d2429d5d7d405ebd1fade85b75`
