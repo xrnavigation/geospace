@@ -94,4 +94,5 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Exact next action: execute the preconditions and four correctness gates in
   the preregistered order for exact candidate `b92885d`; do not begin timing
   unless all pass.
-- Preregistration artifact commit: pending record-only follow-up.
+- Preregistration artifact commit:
+  `8d8175ce013c83de9ebc4da7301280836ba0717a`.

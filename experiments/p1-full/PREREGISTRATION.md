@@ -216,4 +216,5 @@ subject `experiments: record full P1 artifact commit`. It must also write
 uncommitted `notes-polygon-p1-full-experiment.md` and must not stage or commit
 that note or any pre-existing dirty path.
 
-Preregistration artifact commit: pending record-only follow-up.
+Preregistration artifact commit:
+`8d8175ce013c83de9ebc4da7301280836ba0717a`.
