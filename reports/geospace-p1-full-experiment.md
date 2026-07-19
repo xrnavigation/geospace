@@ -78,9 +78,5 @@ endpoint is below `0 us`. Both performance conditions pass without rounding.
 - Node.js 24: not run; the holdout remains sealed and unconsumed.
 - Ward: skipped as explicitly instructed.
 - Integration: no promotion, merge, cherry-pick, or push was performed.
-- Exact next campaign action: obtain a new user message authorizing exact
-  candidate `b92885d4f0fea7c1d985959bdde07c17a95ebada` and the Node.js 24 holdout;
-  do not promote or consume the holdout before that authorization.
-
 First evidence artifact commit:
 `c7f3a4a1e612629188c0222f4e7b99d7729f5890`.

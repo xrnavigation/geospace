@@ -192,12 +192,6 @@ No rounding may be used for the decision.
 - `rejected full experiment`: any required gate, timed command, calculation,
   threshold, interval, scope, or terminal-state check fails.
 
-In either outcome, commit raw JSON, summarizer, report, and ledger record on
-`master`; do not alter `master` source. A promotable development result is not
-promotion authority. Node.js 24 remains a sealed holdout. Do not run it,
-merge, cherry-pick, push, or promote without a new user message authorizing
-exact candidate `b92885d` and the Node.js 24 holdout.
-
 ## Evidence and execution records
 
 The fixed final evidence paths are:

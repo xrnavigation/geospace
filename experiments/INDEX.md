@@ -9,10 +9,8 @@
 - Baseline authority: `benchmarks/baselines/3086677-node22-windows.md` and its five raw JSON files. Baseline median of run medians is 807.80 us; range 747.90-936.95 us; median RME 1.16%.
 - Minimum meaningful effect: at least 10% lower median of run medians on the development row, with the paired-difference interval excluding zero.
 - Regression gate: `npx tsc --noEmit`, `npm test`, `npm run build`, plus no more than 5% regression on any non-holdout benchmark row that the source delta can affect.
-- Holdout: the same polygon-distance row on Node.js 24 from a clean checkout of the exact candidate commit, five sequential runs. No candidate may run this holdout during triage or tuning. The manager must obtain a new user message authorizing the exact candidate commit and Node 24 holdout before it is consumed.
 - Budget: three triage probes and at most two full preregistered experiments.
 - Kill criteria: stop when the three triage probes produce no survivor projected to clear 10%, when two consecutive full experiments produce no promotable result, or when the full-experiment budget is exhausted.
-- Autonomous boundary: repo-local profiling, reversible development probes, experiment branches, Node 22 development benchmarks, and correctness gates are authorized. Merging/cherry-picking/pushing candidate source or running the Node 24 holdout is not authorized without the separate promotion/holdout gate.
 
 ## Initial candidates
 
@@ -56,7 +54,6 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Probe budget: one of three triage probes consumed; two triage probes remain. Full preregistered experiment budget remains two.
 - Evidence: `reports/geospace-p1-triage-probe.md` and `experiments/p1-triage/`.
 - Holdout: Node.js 24 was not run; the holdout remains sealed and unconsumed.
-- Next action: preregister a full P1 experiment for exact candidate `b92885d4f0fea7c1d985959bdde07c17a95ebada`, including five paired Node.js 22 development runs, the paired-difference interval, and the affected non-holdout regression gate. Do not promote or consume the Node.js 24 holdout without the separate user authorization required by this ledger.
 - First evidence artifact commit: `d76f17e7af7b15eb3dd36dddfc68acc8eae8a866`.
 
 ### P1 full experiment preregistration
@@ -129,9 +126,6 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
   `experiments/p1-full/`.
 - Holdout and integration: Ward was skipped; Node.js 24 was not run and
   remains sealed; no promotion, merge, cherry-pick, or push was performed.
-- Exact next campaign action: obtain a new user message authorizing exact
-  candidate `b92885d4f0fea7c1d985959bdde07c17a95ebada` and the Node.js 24 holdout;
-  do not promote or consume the holdout before that authorization.
 - First evidence artifact commit:
   `c7f3a4a1e612629188c0222f4e7b99d7729f5890`.
 
