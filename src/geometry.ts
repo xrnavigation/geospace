@@ -833,25 +833,180 @@ export class GeometryEngine implements GeometryOperations {
   polygonToPolygonDistance(a: Polygon, b: Polygon): number {
     if (this.intersects(a, b)) return 0;
 
-    let minDist = Infinity;
-
-    // Check all edge pairs of the exterior rings
+    const edgesA = new Float64Array(a.exterior.length * 4);
     for (let i = 0; i < a.exterior.length; i++) {
       const a1 = a.exterior[i];
       const a2 = a.exterior[(i + 1) % a.exterior.length];
-      const edgeA: LineSegment = new LineSegment2D(a1, a2);
+      const offset = i * 4;
+      edgesA[offset] = a1.x;
+      edgesA[offset + 1] = a1.y;
+      edgesA[offset + 2] = a2.x;
+      edgesA[offset + 3] = a2.y;
+    }
 
-      for (let j = 0; j < b.exterior.length; j++) {
-        const b1 = b.exterior[j];
-        const b2 = b.exterior[(j + 1) % b.exterior.length];
-        const edgeB: LineSegment = new LineSegment2D(b1, b2);
+    const edgesB = new Float64Array(b.exterior.length * 4);
+    for (let i = 0; i < b.exterior.length; i++) {
+      const b1 = b.exterior[i];
+      const b2 = b.exterior[(i + 1) % b.exterior.length];
+      const offset = i * 4;
+      edgesB[offset] = b1.x;
+      edgesB[offset + 1] = b1.y;
+      edgesB[offset + 2] = b2.x;
+      edgesB[offset + 3] = b2.y;
+    }
 
-        const d = this.lineToLineDistance(edgeA, edgeB);
-        minDist = Math.min(minDist, d);
+    const useDirectEuclideanDistance = this.distanceFunc === euclideanDistance;
+    const projectedPoint = { x: 0, y: 0 };
+    let minDistSq = Infinity;
+
+    for (let i = 0; i < edgesA.length; i += 4) {
+      const pointAStart = a.exterior[i / 4];
+      const pointAEnd = a.exterior[(i / 4 + 1) % a.exterior.length];
+      const ax = edgesA[i];
+      const ay = edgesA[i + 1];
+      const bx = edgesA[i + 2];
+      const by = edgesA[i + 3];
+      const abx = bx - ax;
+      const aby = by - ay;
+      const abLengthSq = abx * abx + aby * aby;
+
+      for (let j = 0; j < edgesB.length; j += 4) {
+        const cx = edgesB[j];
+        const cy = edgesB[j + 1];
+        const dx = edgesB[j + 2];
+        const dy = edgesB[j + 3];
+        const cdx = dx - cx;
+        const cdy = dy - cy;
+      const cdLengthSq = cdx * cdx + cdy * cdy;
+        const pointBStart = b.exterior[j / 4];
+        const pointBEnd = b.exterior[(j / 4 + 1) % b.exterior.length];
+
+        const det = abx * cdy - aby * cdx;
+        if (Math.abs(det) < EPSILON) {
+          const area =
+            ax * (by - cy) + bx * (cy - ay) + cx * (ay - by);
+          if (
+            Math.abs(area) < EPSILON &&
+            Math.min(ax, bx) <= Math.max(cx, dx) + EPSILON &&
+            Math.max(ax, bx) >= Math.min(cx, dx) - EPSILON &&
+            Math.min(ay, by) <= Math.max(cy, dy) + EPSILON &&
+            Math.max(ay, by) >= Math.min(cy, dy) - EPSILON
+          ) {
+            return 0;
+          }
+        } else {
+          const t = ((cx - ax) * cdy - (cy - ay) * cdx) / det;
+          const u = ((cx - ax) * aby - (cy - ay) * abx) / det;
+          if (
+            t >= -EPSILON &&
+            t <= 1 + EPSILON &&
+            u >= -EPSILON &&
+            u <= 1 + EPSILON
+          ) {
+            return 0;
+          }
+        }
+
+        let t =
+          cdLengthSq < EPSILON
+            ? 0
+            : ((ax - cx) * cdx + (ay - cy) * cdy) / cdLengthSq;
+        let deltaX: number;
+        let deltaY: number;
+        let pairMinSq: number;
+        if (useDirectEuclideanDistance) {
+          t = Math.max(0, Math.min(1, t));
+          deltaX = ax - (cx + t * cdx);
+          deltaY = ay - (cy + t * cdy);
+          pairMinSq = deltaX * deltaX + deltaY * deltaY;
+        } else {
+          let distance: number;
+          if (cdLengthSq < EPSILON || t < 0) {
+            distance = this.distanceFunc(pointAStart, pointBStart);
+          } else if (t > 1) {
+            distance = this.distanceFunc(pointAStart, pointBEnd);
+          } else {
+            projectedPoint.x = cx + t * cdx;
+            projectedPoint.y = cy + t * cdy;
+            distance = this.distanceFunc(pointAStart, projectedPoint);
+          }
+          pairMinSq = distance * distance;
+        }
+
+        t =
+          cdLengthSq < EPSILON
+            ? 0
+            : ((bx - cx) * cdx + (by - cy) * cdy) / cdLengthSq;
+        if (useDirectEuclideanDistance) {
+          t = Math.max(0, Math.min(1, t));
+          deltaX = bx - (cx + t * cdx);
+          deltaY = by - (cy + t * cdy);
+          pairMinSq = Math.min(pairMinSq, deltaX * deltaX + deltaY * deltaY);
+        } else {
+          let distance: number;
+          if (cdLengthSq < EPSILON || t < 0) {
+            distance = this.distanceFunc(pointAEnd, pointBStart);
+          } else if (t > 1) {
+            distance = this.distanceFunc(pointAEnd, pointBEnd);
+          } else {
+            projectedPoint.x = cx + t * cdx;
+            projectedPoint.y = cy + t * cdy;
+            distance = this.distanceFunc(pointAEnd, projectedPoint);
+          }
+          pairMinSq = Math.min(pairMinSq, distance * distance);
+        }
+
+        t =
+          abLengthSq < EPSILON
+            ? 0
+            : ((cx - ax) * abx + (cy - ay) * aby) / abLengthSq;
+        if (useDirectEuclideanDistance) {
+          t = Math.max(0, Math.min(1, t));
+          deltaX = cx - (ax + t * abx);
+          deltaY = cy - (ay + t * aby);
+          pairMinSq = Math.min(pairMinSq, deltaX * deltaX + deltaY * deltaY);
+        } else {
+          let distance: number;
+          if (abLengthSq < EPSILON || t < 0) {
+            distance = this.distanceFunc(pointBStart, pointAStart);
+          } else if (t > 1) {
+            distance = this.distanceFunc(pointBStart, pointAEnd);
+          } else {
+            projectedPoint.x = ax + t * abx;
+            projectedPoint.y = ay + t * aby;
+            distance = this.distanceFunc(pointBStart, projectedPoint);
+          }
+          pairMinSq = Math.min(pairMinSq, distance * distance);
+        }
+
+        t =
+          abLengthSq < EPSILON
+            ? 0
+            : ((dx - ax) * abx + (dy - ay) * aby) / abLengthSq;
+        if (useDirectEuclideanDistance) {
+          t = Math.max(0, Math.min(1, t));
+          deltaX = dx - (ax + t * abx);
+          deltaY = dy - (ay + t * aby);
+          pairMinSq = Math.min(pairMinSq, deltaX * deltaX + deltaY * deltaY);
+        } else {
+          let distance: number;
+          if (abLengthSq < EPSILON || t < 0) {
+            distance = this.distanceFunc(pointBEnd, pointAStart);
+          } else if (t > 1) {
+            distance = this.distanceFunc(pointBEnd, pointAEnd);
+          } else {
+            projectedPoint.x = ax + t * abx;
+            projectedPoint.y = ay + t * aby;
+            distance = this.distanceFunc(pointBEnd, projectedPoint);
+          }
+          pairMinSq = Math.min(pairMinSq, distance * distance);
+        }
+
+        minDistSq = Math.min(minDistSq, pairMinSq);
       }
     }
 
-    return minDist;
+    return Math.sqrt(minDistSq);
   }
   intersects(
     a: Geometry | Point | LineSegment | Circle | Polygon,

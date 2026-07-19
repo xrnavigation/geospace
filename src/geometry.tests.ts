@@ -139,6 +139,95 @@ describe("GeometryEngine", () => {
         )
       ).toBeLessThan(EPSILON);
     });
+
+    it("calculates the benchmark's separated 128-vertex polygons", () => {
+      const polygonA = new Polygon2D(
+        Array.from({ length: 128 }, (_, index) => {
+          const angle = (index / 128) * Math.PI * 2;
+          return { x: Math.cos(angle) * 100, y: Math.sin(angle) * 100 };
+        })
+      );
+      const polygonB = new Polygon2D(
+        Array.from({ length: 128 }, (_, index) => {
+          const angle = (index / 128) * Math.PI * 2;
+          return { x: 220 + Math.cos(angle) * 100, y: Math.sin(angle) * 100 };
+        })
+      );
+
+      expect(
+        Math.abs(engine.polygonToPolygonDistance(polygonA, polygonB) - 20)
+      ).toBeLessThan(EPSILON);
+    });
+
+    it("returns zero for intersecting polygons", () => {
+      const overlapping = new Polygon2D([
+        { x: 5, y: 5 },
+        { x: 15, y: 5 },
+        { x: 15, y: 15 },
+        { x: 5, y: 15 },
+      ]);
+
+      expect(engine.polygonToPolygonDistance(square, overlapping)).toBe(0);
+    });
+
+    it("returns zero when one polygon contains the other", () => {
+      const contained = new Polygon2D([
+        { x: 2, y: 2 },
+        { x: 4, y: 2 },
+        { x: 4, y: 4 },
+        { x: 2, y: 4 },
+      ]);
+
+      expect(engine.polygonToPolygonDistance(square, contained)).toBe(0);
+    });
+
+    it("calculates distance between collinear separated edges", () => {
+      const left = new Polygon2D([
+        { x: 0, y: 0 },
+        { x: 4, y: 0 },
+        { x: 4, y: 1 },
+        { x: 0, y: 1 },
+      ]);
+      const right = new Polygon2D([
+        { x: 6, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10, y: 1 },
+        { x: 6, y: 1 },
+      ]);
+
+      expect(engine.polygonToPolygonDistance(left, right)).toBe(2);
+    });
+
+    it("handles a degenerate edge from repeated polygon vertices", () => {
+      const repeated = new Polygon2D([
+        { x: 0, y: 0 },
+        { x: 4, y: 0 },
+        { x: 4, y: 0 },
+        { x: 4, y: 4 },
+        { x: 0, y: 4 },
+      ]);
+      const separated = new Polygon2D([
+        { x: 6, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10, y: 4 },
+        { x: 6, y: 4 },
+      ]);
+
+      expect(engine.polygonToPolygonDistance(repeated, separated)).toBe(2);
+    });
+
+    it("preserves the configured point distance function", () => {
+      const scaledEngine = new GeometryEngine(
+        (a, b) => euclideanDistance(a, b) * 2
+      );
+
+      expect(
+        Math.abs(
+          scaledEngine.polygonToPolygonDistance(square, square2) -
+            28.284271247461902
+        )
+      ).toBeLessThan(EPSILON);
+    });
   });
 
   describe("Intersection Tests", () => {
