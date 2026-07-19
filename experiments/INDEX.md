@@ -42,4 +42,4 @@ Frame artifact commit: `e68de5abe11d18f4acf3148a6ae356d62c2c6015`
 - Probe budget: unchanged at three triage probes; this prerequisite consumed no probe.
 - Next action: repair the instrumentation until actual benchmark-worker CPU and heap profiles contain `dist/geometry.es.js`, then repeat the baseline-profile prerequisite before any candidate probe.
 - Report: `reports/geospace-polygon-distance-profile.md`.
-- Artifact commit: `PENDING`.
+- Artifact commit: `a304cce88b099445a13b272ffd81046d32336069`.

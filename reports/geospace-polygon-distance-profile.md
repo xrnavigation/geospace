@@ -58,4 +58,4 @@ The profile-backed candidate order is therefore unavailable. The pre-profile cam
 
 Next action: repair profiling instrumentation so retained CPU and heap profiles from the actual benchmark worker contain `dist/geometry.es.js`, then rerun the baseline-profile prerequisite before spending any triage probe. Candidates remain unchanged, no candidate is triaged, and no full experiment is selected.
 
-Artifact commit: `PENDING`
+Artifact commit: `a304cce88b099445a13b272ffd81046d32336069`
