@@ -341,7 +341,7 @@ export interface SpatialIndex<T extends Bounded> {
 export interface SpatialItem extends Bounded {
   id: string;
   geometry: Geometry & Bounded;
-  metadata?: any;
+  metadata?: Record<string, unknown> | null;
   getBoundingBox(): BoundingBox;
 }
 

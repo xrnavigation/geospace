@@ -278,7 +278,7 @@ export class GeoJSONCore {
     items: Array<{
       id: string;
       geometry: Geometry;
-      metadata?: Record<string, unknown>;
+      metadata?: Record<string, unknown> | null;
       getBoundingBox: () => BoundingBox;
     }>,
     options?: GeoJSONOptions
